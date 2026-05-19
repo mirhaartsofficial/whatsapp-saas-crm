@@ -72,7 +72,8 @@ app.get('/', (req, res) => {
                 <label style="font-weight: bold; font-size: 13px;">Password Verification Key</label>
                 <input type="password" id="loginPasswordInputField" placeholder="••••••••" style="width:100%; box-sizing:border-box;">
             </div>
-            Authenticate Account</button>
+            <!-- FIX 1: HTML Tag complete kiya aur click functionality trigger add ki -->
+            <button type="button" class="btn-meta" onclick="executeIdentityAuthenticationRequest()">Authenticate Account</button>
             <div style="margin-top: 15px;">
                 <button type="button" onclick="switchLoginViewToForgotPasswordPanel()" style="background:none; border:none; color:#1877F2; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline; padding:0;">Forgot Password?</button>
             </div>
@@ -293,13 +294,13 @@ app.get('/', (req, res) => {
             const hookGrid = document.getElementById('superAuditorAccountsListingHookGrid');
             hookGrid.innerHTML = '';
             users.forEach(u => {
-                hookGrid.innerHTML += \`
+                hookGrid.innerHTML += `
                 <div class="fleet-row" style="border-left:5px solid #dc2626; margin-bottom:8px; padding:10px; background:#fff; border:1px solid #ddd;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div><strong>👤 \${u.name}</strong> [\${u.role}]<br><span style="font-size:11px; color:#555;">Email: \${u.email}</span><br><span style="font-size:11px; color:green; font-weight:bold;">Password: \${u.rawPass}</span></div>
                         <div><button class="view-btn" onclick="alert('Encryption tunnel mounted for chat logging inspection.')">Chats</button></div>
                     </div>
-                </div>\`;
+                </div>`;
             });
         }
 
@@ -307,11 +308,11 @@ app.get('/', (req, res) => {
             const target = document.getElementById('tokenVaultLogsContainerOutputGrid');
             target.innerHTML = '';
             mockTokenVaultLogsDB.forEach(log => {
-                target.innerHTML += \`
+                target.innerHTML += `
                 <div class="fleet-row" style="border-left:5px solid #b91c1c; margin-bottom:6px; padding:8px; background:#fff;">
                     <strong>⚙️ \${log.node}</strong> - <span style="color:#b91c1c; font-weight:bold;">\${log.status}</span><br>
                     <span style="font-size:11px; color:gray;">Life Balance Factor: \${log.time}</span>
-                </div>\`;
+                </div>`;
             });
         }
 
@@ -338,9 +339,15 @@ app.get('/', (req, res) => {
 
         function executeSystemHistoryLogsFlushSequence() {
             if(!confirm("Are you sure?")) return;
-            const emptyLogs = ["[" + new Date().toLocaleTimeString() + "] 🗑0 History records manually flushed out."];
+            const emptyLogs = ["[" + new Date().toLocaleTimeString() + "] 🗑️ History records manually flushed out."];
             saveHistoryData(emptyLogs);
             renderHistoryTerminalLogsBox();
+        }
+
+        // FIX 2: Added missing Sign Out implementation
+        function executeSystemLogoutSequence() {
+            localStorage.clear();
+            window.location.reload();
         }
 
         function renderFleetDirectoryRows() {
@@ -348,10 +355,10 @@ app.get('/', (req, res) => {
             const targetGrid = document.getElementById('proprietorFleetNumbersOutputGrid');
             targetGrid.innerHTML = '';
             list.forEach(tenant => {
-                targetGrid.innerHTML += \`
+                targetGrid.innerHTML += `
                     <div class="fleet-row" style="background:#fff; border:1px solid #ddd; padding:10px; margin-bottom:6px;">
                         <strong>🏢 \${tenant.businessName}</strong> [Line: \${tenant.num}]
-                    </div>\`;
+                    </div>`;
             });
         }
 
