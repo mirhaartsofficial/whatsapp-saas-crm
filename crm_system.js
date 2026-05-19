@@ -1,7 +1,6 @@
-// server.js
-// Secure Production-Ready Meta SaaS Command Base Server
+// crm_system.js
+// Secure Production-Ready Meta SaaS Command Base Server for Render
 const express = require('express');
-const http = require('http');
 const crypto = require('crypto');
 const cors = require('cors');
 const path = require('path');
@@ -42,7 +41,6 @@ let systemUsersDB = [
 let activeSessionsStore = {};
 
 // --- SECURITY MIDDLEWARE ---
-// Role-Based Access Control (RBAC) to block unauthorized sub-users
 function authenticateRoleToken(allowedRole) {
     return (req, res, next) => {
         const sessionToken = req.headers['authorization'];
@@ -73,7 +71,6 @@ app.post('/api/auth/login', (req, res) => {
         return res.status(401).json({ error: "Invalid Credentials" });
     }
 
-    // Generate Secure Session Token
     const sessionToken = crypto.randomBytes(32).toString('hex');
     activeSessionsStore[sessionToken] = { id: user.id, name: user.name, email: user.email, role: user.role };
 
@@ -93,8 +90,7 @@ app.post('/api/auth/forgot-password-trigger', (req, res) => {
     const user = systemUsersDB.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
     if (!user) return res.status(404).json({ error: "Corporate identity email records not found." });
 
-    // Secure temporary tracking token simulation
-    const simulatedOTP = "992831"; // In production, generate dynamic crypto numbers
+    const simulatedOTP = "992831"; 
     res.json({ message: "Security token initialized", simulatedOTP });
 });
 
@@ -112,12 +108,11 @@ app.post('/api/auth/forgot-password-verify-commit', (req, res) => {
 
 // 4. Proprietor Auditing Endpoint (Protected Route)
 app.get('/api/proprietor/audit-directory-stream', authenticateRoleToken('PROPRIETOR'), (req, res) => {
-    // Scrub sensitive credential data before transmission
     const sanitizedProfiles = systemUsersDB.map(u => ({
         name: u.name,
         email: u.email,
         role: u.role,
-        status: "SECURED_HASH_VAULT" // Never transmit actual password or hash values
+        status: "SECURED_HASH_VAULT" 
     }));
     res.json(sanitizedProfiles);
 });
@@ -169,7 +164,6 @@ app.get('/', (req, res) => {
 </head>
 <body>
 
-    <!-- 1. LOGIN INTERFACE -->
     <div id="loginScreenGatewayFrame" style="display: block;">
         <div class="login-card">
             <h2>Log In to Meta SaaS</h2>
@@ -190,7 +184,6 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
-    <!-- 2. PASSWORD RECOVERY GATES -->
     <div id="forgotPasswordWrapperOverlayFrame" style="display: none;">
         <div class="login-card">
             <h3 style="color: #1877F2; margin-top: 0;">🛡️ Secure Password Recovery Center</h3>
@@ -213,7 +206,6 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
-    <!-- 3. EDIT CHANNELS MANAGEMENT MODAL MODIFIER -->
     <div id="proprietorDataEditModalFrameWrapper" class="edit-modal-overlay">
         <div class="edit-modal-card">
             <h3 style="color:#1877F2; margin-top:0;">✏️ Modify Account Subscriptions Profile</h3>
@@ -237,7 +229,6 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
-    <!-- 4. ACTIVE CORE DASHBOARD ENVIRONMENT -->
     <div id="mainDashboardWorkspaceShell" style="display: none;">
         <div class="navbar">
             <div style="font-weight: bold; font-size: 18px;" id="welcomeLabelStringNode">Welcome...</div>
@@ -279,7 +270,7 @@ app.get('/', (req, res) => {
                     <button style="width:100%; background:#b91c1c; color:white; font-weight:bold; border:none; margin-top:8px; padding:8px; font-size:11px; cursor:pointer;" onclick="executeSystemHistoryLogsFlushSequence()">Clear History Node Cache Permanently</button>
                 </div>
                 <div class="card saas-card">
-                    <h3>¼️ Proprietor Account Profile Modifier</h3>
+                    <h3>⚙️ Proprietor Account Profile Modifier</h3>
                     <div class="form-row"><label style="font-size:12px; font-weight:bold;">Update Login Password Key</label>
                         <input type="password" id="proprietorSelfPasswordInput" placeholder="Enter new password key"></div>
                     <button style="width:100%; background:#242526; color:white; font-weight:bold; cursor:pointer; border:none; padding:10px; border-radius:6px;" onclick="executeProprietorSelfProfileOverwrite()">Overwrite Self Profile</button>
@@ -545,7 +536,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Start Production-Ready Server Node
-server.listen(PORT, () => {
+// Start Production-Ready Server Node directly using app.listen
+app.listen(PORT, () => {
     console.log(`Server running securely on port ${PORT}`);
 });
