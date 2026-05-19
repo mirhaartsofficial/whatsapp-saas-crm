@@ -1,5 +1,5 @@
 // crm_system.js
-// Production Engine with Live MongoDB & Local Storage Integration
+// Final Fixed Web Port Copy: Is ko crm_system.js ke naam se save karein
 const express = require('express');
 const http = require('http');
 const crypto = require('crypto');
@@ -11,31 +11,25 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*', credentials: true }));
 
-const PORT = process.env.PORT || 5000;
+// FIXED WEB GATE: Pull dynamic port from Render environment variables arrays
+const PORT = process.env.PORT || 10000; 
 const server = http.createServer(app);
 
-// 🔒 Dynamic MongoDB Cloud Link Integration
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/waba_saas_db";
 mongoose.connect(MONGO_URI)
     .then(() => console.log("💾 MongoDB Persistent Database Connected Securely"))
     .catch(err => console.error("Database connection fault:", err));
 
-// --- Database Schemas (Ab saara data hamesha ke liye safe rahe ga) ---
-const UserSchema = new mongoose.Schema({
-    name: String, email: { type: String, unique: true }, passwordHash: String, role: String
-});
+const UserSchema = new mongoose.Schema({ name: String, email: { type: String, unique: true }, passwordHash: String, role: String });
 const User = mongoose.model('User', UserSchema);
 
-const FleetSchema = new mongoose.Schema({
-    phoneNumber: String, businessName: String, appId: String, token: String, balance: { type: String, default: "Unlimited Active Plan" }
-});
+const FleetSchema = new mongoose.Schema({ phoneNumber: String, businessName: String, appId: String, token: String, balance: { type: String, default: "Unlimited Active Plan" } });
 const Fleet = mongoose.model('Fleet', FleetSchema);
 
 function generateSecureHash(password) { 
     return crypto.createHmac('sha256', 'master_salt_key_999').update(password).digest('hex'); 
 }
 
-// Seed permanent root profiles if missing inside database
 async function seedRootIdentities() {
     const ownerExists = await User.findOne({ email: "asadaltaf9@gmail.com" });
     if (!ownerExists) {
@@ -55,7 +49,7 @@ app.get('/', (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Meta SaaS Command Base Framework</title>
         <style>
-            :root { --meta-blue: #1877F2; --meta-bg: #F0F2F5; --text: #1C1E21; }
+            :root { --meta-blue: #1877F2; --meta-zinc: #242526; --meta-bg: #F0F2F5; --text: #1C1E21; }
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--meta-bg); margin: 0; padding: 0; color: var(--text); }
             .navbar { background: var(--meta-blue); color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
             .grid-frame { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1300px; margin: auto; }
@@ -73,7 +67,6 @@ app.get('/', (req, res) => {
     </head>
     <body style="background: #F0F2F5;">
 
-    <!-- Section 1: Authentication Screen Interface -->
     <div id="loginScreenGatewayFrame" style="display: block;">
         <div class="login-card">
             <h2 style="color: #1877F2; margin-top: 0; margin-bottom: 5px;">Log In to Meta SaaS</h2>
@@ -91,7 +84,6 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
-    <!-- Section 2: Complete SaaS Space Panel Layout -->
     <div id="mainDashboardWorkspaceShell" style="display: none;">
         <div class="navbar">
             <div style="font-weight: bold; font-size: 18px;" id="welcomeLabelStringNode">Welcome...</div>
@@ -125,7 +117,6 @@ app.get('/', (req, res) => {
     </div>
 
     <script>
-        // Check session validation tracking elements on loading
         window.addEventListener('DOMContentLoaded', () => {
             if(localStorage.getItem('saas_is_logged_in') === 'true') {
                 document.getElementById('loginScreenGatewayFrame').style.display = 'none';
@@ -210,14 +201,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({ user: { name: user.name, role: user.role, customGreetingText } });
 });
 
-app.post('/api/proprietor/onboard-tenant', async (req, res) => {
-    await Fleet.create(req.body);
-    res.json({ success: true });
-});
-
-app.get('/api/proprietor/fleet-directory', async (req, res) => {
-    const list = await Fleet.find({});
-    res.json(list);
-});
+app.post('/api/proprietor/onboard-tenant', async (req, res) => { await Fleet.create(req.body); res.json({ success: true }); });
+app.get('/api/proprietor/fleet-directory', async (req, res) => { const list = await Fleet.find({}); res.json(list); });
 
 server.listen(PORT, () => console.log(`🚀 Secure Enterprise SaaS Engine Online on Port ${PORT}`));
