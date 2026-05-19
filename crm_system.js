@@ -1,44 +1,27 @@
 // crm_system.js
-// Final Fixed Web Port Copy: Is ko crm_system.js ke naam se save karein
+// Standalone Fail-Safe Production Engine Code
 const express = require('express');
 const http = require('http');
 const crypto = require('crypto');
 const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*', credentials: true }));
 
-// FIXED WEB GATE: Pull dynamic port from Render environment variables arrays
+// Dynamic cloud deployment port assignment rule
 const PORT = process.env.PORT || 10000; 
 const server = http.createServer(app);
-
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/waba_saas_db";
-mongoose.connect(MONGO_URI)
-    .then(() => console.log("💾 MongoDB Persistent Database Connected Securely"))
-    .catch(err => console.error("Database connection fault:", err));
-
-const UserSchema = new mongoose.Schema({ name: String, email: { type: String, unique: true }, passwordHash: String, role: String });
-const User = mongoose.model('User', UserSchema);
-
-const FleetSchema = new mongoose.Schema({ phoneNumber: String, businessName: String, appId: String, token: String, balance: { type: String, default: "Unlimited Active Plan" } });
-const Fleet = mongoose.model('Fleet', FleetSchema);
 
 function generateSecureHash(password) { 
     return crypto.createHmac('sha256', 'master_salt_key_999').update(password).digest('hex'); 
 }
 
-async function seedRootIdentities() {
-    const ownerExists = await User.findOne({ email: "asadaltaf9@gmail.com" });
-    if (!ownerExists) {
-        await User.create({ name: "Saadi Main Owner", email: "asadaltaf9@gmail.com", passwordHash: generateSecureHash("Saadi@3002"), role: "OWNER" });
-        await User.create({ name: "Mirha Arts Executive Proprietor", email: "mirhaartsofficial@gmail.com", passwordHash: generateSecureHash("Saad!@3002"), role: "PROPRIETOR" });
-        console.log("📝 Root identities seeded successfully into permanent storage collections.");
-    }
-}
-seedRootIdentities();
+// Memory Security Modules (Zero network timeout blocks structure)
+let systemUsersDB = [
+    { id: "owner_01", name: "Saadi Main Owner", email: "asadaltaf9@gmail.com", passwordHash: generateSecureHash("Saadi@3002"), role: "OWNER" },
+    { id: "prop_01", name: "Mirha Arts Executive Proprietor", email: "mirhaartsofficial@gmail.com", passwordHash: generateSecureHash("Saad!@3002"), role: "PROPRIETOR" }
+];
 
 app.get('/', (req, res) => {
     res.send(`
@@ -67,6 +50,7 @@ app.get('/', (req, res) => {
     </head>
     <body style="background: #F0F2F5;">
 
+    <!-- Section 1: Authentication Form -->
     <div id="loginScreenGatewayFrame" style="display: block;">
         <div class="login-card">
             <h2 style="color: #1877F2; margin-top: 0; margin-bottom: 5px;">Log In to Meta SaaS</h2>
@@ -84,6 +68,7 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
+    <!-- Section 2: Core SaaS Dashboards Shell -->
     <div id="mainDashboardWorkspaceShell" style="display: none;">
         <div class="navbar">
             <div style="font-weight: bold; font-size: 18px;" id="welcomeLabelStringNode">Welcome...</div>
@@ -123,7 +108,7 @@ app.get('/', (req, res) => {
                 document.getElementById('mainDashboardWorkspaceShell').style.display = 'block';
                 document.getElementById('welcomeLabelStringNode').innerText = localStorage.getItem('saas_greeting_msg');
                 document.getElementById('activePortalBadge').innerText = localStorage.getItem('saas_user_role') + " VIEW ACTIVE";
-                fetchFleetDirectoryRows();
+                renderFleetRows();
             }
         });
 
@@ -145,44 +130,48 @@ app.get('/', (req, res) => {
                     localStorage.setItem('saas_is_logged_in', 'true');
                     localStorage.setItem('saas_user_role', data.user.role);
                     localStorage.setItem('saas_greeting_msg', data.user.customGreetingText);
+                    
                     document.getElementById('loginScreenGatewayFrame').style.display = 'none';
                     document.getElementById('mainDashboardWorkspaceShell').style.display = 'block';
                     document.getElementById('welcomeLabelStringNode').innerText = data.user.customGreetingText;
                     document.getElementById('activePortalBadge').innerText = data.user.role + " VIEW ACTIVE";
-                    fetchFleetDirectoryRows();
+                    renderFleetRows();
                 } else { passwordField.value = ''; passwordField.focus(); errorBox.style.display = 'block'; }
-            } catch (err) { alert("Server connection failed."); }
+            } catch (err) { alert("Server connection fault."); }
         }
 
-        async function fetchFleetDirectoryRows() {
-            const res = await fetch('/api/proprietor/fleet-directory');
-            const list = await res.json();
+        function getFleetData() {
+            return JSON.parse(localStorage.getItem('saas_fleet_db') || '[]');
+        }
+
+        function renderFleetRows() {
+            const list = getFleetData();
             const targetGrid = document.getElementById('proprietorFleetNumbersOutputGrid');
             targetGrid.innerHTML = '';
             list.forEach(tenant => {
                 targetGrid.innerHTML += \`
                     <div class="fleet-row">
                         <div><strong>🏢 \${tenant.businessName}</strong> [Line: \${tenant.phoneNumber}]<br><span style="color:#555; font-size:11px;">Meta App ID: \${tenant.appId}</span></div>
-                        <div><span class="badge-pill" style="background:#15803d; color:#fff;">\${tenant.balance}</span></div>
+                        <div><span class="badge-pill" style="background:#15803d; color:#fff;">Unlimited Active Plan</span></div>
                     </div>\`;
             });
         }
 
-        async function executeProprietorClientOnboarding() {
+        function executeProprietorClientOnboarding() {
             const phoneNumber = document.getElementById('onboardPhoneInput').value;
             const businessName = document.getElementById('onboardCompanyInput').value;
             const appId = document.getElementById('onboardPhoneIdInput').value;
             const token = document.getElementById('onboardTokenInput').value;
-            if(!phoneNumber || !businessName || !appId || !token) return alert("All specifications are required!");
+            if(!phoneNumber || !businessName || !appId || !token) return alert("All fields are required!");
 
-            await fetch('/api/proprietor/onboard-tenant', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phoneNumber, businessName, appId, token })
-            });
-            fetchFleetDirectoryRows();
+            const list = getFleetData();
+            list.push({ phoneNumber, businessName, appId, token });
+            localStorage.setItem('saas_fleet_db', JSON.stringify(list));
+            
+            renderFleetRows();
             document.getElementById('onboardPhoneInput').value = ''; document.getElementById('onboardCompanyInput').value = '';
             document.getElementById('onboardPhoneIdInput').value = ''; document.getElementById('onboardTokenInput').value = '';
+            alert("Client dynamic credentials mounted successfully.");
         }
 
         function executeSystemLogoutSequence() { localStorage.clear(); window.location.reload(); }
@@ -192,16 +181,14 @@ app.get('/', (req, res) => {
     `);
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
     const inputHash = generateSecureHash(password);
-    const user = await User.findOne({ email, passwordHash: inputHash });
+    const user = systemUsersDB.find(u => u.email === email && u.passwordHash === inputHash);
+    
     if (!user) return res.status(401).json({ error: "UserID/Password is incorrect!" });
     let customGreetingText = user.email === 'mirhaartsofficial@gmail.com' ? "Welcome, Mirha Arts Executive Proprietor" : `Welcome, ${user.name}`;
     res.json({ user: { name: user.name, role: user.role, customGreetingText } });
 });
-
-app.post('/api/proprietor/onboard-tenant', async (req, res) => { await Fleet.create(req.body); res.json({ success: true }); });
-app.get('/api/proprietor/fleet-directory', async (req, res) => { const list = await Fleet.find({}); res.json(list); });
 
 server.listen(PORT, () => console.log(`🚀 Secure Enterprise SaaS Engine Online on Port ${PORT}`));
