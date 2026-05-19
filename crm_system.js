@@ -1,6 +1,5 @@
 /**
  * File Name: crm_system.js
- * Description: Production-Ready Core Script for Multi-Tier WhatsApp SaaS Platform
  * Tech Stack: Node.js / Express.js (With Mock Database Storage for Instant Testing)
  */
 
@@ -15,7 +14,7 @@ app.use(express.json());
 // JWT Secret Key for Session Management
 const JWT_SECRET = "SUPREME_GOD_MODE_SECRET_KEYS_2026_MIRHA";
 
-// Global In-Memory Database (Real Database implementation mein Yeh PostgreSQL/MongoDB tables honge)
+// Global In-Memory Database
 let usersTable = [];
 let whitelistedNumbersTable = [];
 
@@ -39,10 +38,9 @@ async function bootstrapSystem() {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(PROPRIETOR_PASSWORD_PLAIN, salt);
     
-    // Seed the Supreme Proprietor into database
     const proprietorUser = {
         id: "proprietor-god-uuid-000000",
-        whatsapp_number: "923000000000", // Default system master number
+        whatsapp_number: "923000000000",
         email: PROPRIETOR_EMAIL,
         password: hashedPassword,
         role: 'proprietor',
@@ -55,15 +53,13 @@ async function bootstrapSystem() {
     };
     
     usersTable.push(proprietorUser);
-    console.log(`[SYSTEM] Supreme Proprietor seeded successfully with Identification: ${PROPRIETOR_EMAIL}`);
+    console.log(`[SYSTEM] Supreme Proprietor seeded successfully: ${PROPRIETOR_EMAIL}`);
 }
 bootstrapSystem();
 
 // ==========================================
 // 2. SECURITY MIDDLEWARES & HIERARCHY GUARDS
 // ==========================================
-
-// Token Extraction and Authentication
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -77,39 +73,33 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Pure Hierarchy Guard (Enforces the Unbreakable Corporate Stack)
 const guardHierarchyAndAccess = (req, res, next) => {
-    const actor = req.user; // Logged-in entity executing the route
+    const actor = req.user;
     const targetUserId = req.params.userId || req.body.targetUserId;
 
-    // Find target in database
     const targetUser = usersTable.find(u => u.id === targetUserId);
     if (!targetUser) {
-        return res.status(404).json({ success: false, message: "Target user profile not found in system database." });
+        return res.status(404).json({ success: false, message: "Target user profile not found." });
     }
 
-    // RULE 1: PROPRIETOR IS GOD. If actor is the absolute proprietor email, bypass all checks instantly.
     if (actor.email === PROPRIETOR_EMAIL && actor.role === 'proprietor') {
         return next();
     }
 
-    // RULE 2: Protect Proprietor from everyone. No one can touch, view, modify, block or remove the Proprietor.
     if (targetUser.email === PROPRIETOR_EMAIL || targetUser.role === 'proprietor') {
         return res.status(403).json({ 
             success: false, 
-            message: "Fatal Error: Supreme Proprietor cannot be accessed, modified, or terminated by any tier." 
+            message: "Fatal Error: Supreme Proprietor cannot be accessed or modified." 
         });
     }
 
-    // RULE 3: Main Owner can ONLY be removed, modified or bypassed by the Platform Proprietor.
     if (targetUser.role === 'main_owner') {
         return res.status(403).json({ 
             success: false, 
-            message: "Action Blocked: Main Owners are locked. Only the System Proprietor holds deletion/modification power." 
+            message: "Action Blocked: Only the System Proprietor holds deletion/modification power over Main Owners." 
         });
     }
 
-    // RULE 4: Linear Rank Check. Lower/Equal ranks cannot touch higher or equal ranks.
     const actorPower = ROLES_HIERARCHY[actor.role];
     const targetPower = ROLES_HIERARCHY[targetUser.role];
 
@@ -120,12 +110,10 @@ const guardHierarchyAndAccess = (req, res, next) => {
         });
     }
 
-    // RULE 5: Cross-Tenant Multi-Dashboard Isolation.
-    // Standard tiers cannot jump branches to touch another Main Owner's child structures.
     if (actor.main_owner_id !== targetUser.main_owner_id) {
         return res.status(403).json({ 
             success: false, 
-            message: "Security Isolation: You cannot interact with nodes outside your own operational hierarchy branch." 
+            message: "Security Isolation: You cannot interact with nodes outside your branch." 
         });
     }
 
@@ -135,8 +123,6 @@ const guardHierarchyAndAccess = (req, res, next) => {
 // ==========================================
 // 3. CORE ROUTING PLATFORM ENDPOINTS
 // ==========================================
-
-// Global Login Endpoint for All Tiers (Returns customized role identification)
 app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -144,13 +130,12 @@ app.post('/api/auth/login', async (req, res) => {
         if (!user) return res.status(404).json({ success: false, message: "Identity records do not match." });
 
         if (user.status === 'blocked' || user.status === 'suspended') {
-            return res.status(403).json({ success: false, message: "This dashboard account has been locked by administration." });
+            return res.status(403).json({ success: false, message: "This dashboard account has been locked." });
         }
 
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(401).json({ success: false, message: "Invalid credentials." });
 
-        // Generate customized payload profile token
         const tokenPayload = {
             id: user.id,
             email: user.email,
@@ -177,9 +162,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// [PROPRIETOR ROUTE ONLY] - Whitelist a phone number to claim a separate dashboard cluster
 app.post('/api/proprietor/whitelist-number', authenticateToken, (req, res) => {
-    // Hard check to verify identity
     if (req.user.email !== PROPRIETOR_EMAIL || req.user.role !== 'proprietor') {
         return res.status(403).json({ success: false, message: "Unauthorized. This action requires God Mode access." });
     }
@@ -196,16 +179,14 @@ app.post('/api/proprietor/whitelist-number', authenticateToken, (req, res) => {
 
     return res.status(201).json({
         success: true,
-        message: `Number ${whatsappNumber} has been authorized. Ready to register as Main Owner via its own dashboard instance.`,
+        message: `Number ${whatsappNumber} authorized. Ready to register as Main Owner.`,
         trackingId
     });
 });
 
-// [PUBLIC / INITIALIZATION ROUTE] - The Whitelisted Number claims its Main Owner status
 app.post('/api/auth/register-main-owner', async (req, res) => {
     const { whatsappNumber, email, password } = req.body;
 
-    // Verify if number was authorized by the Proprietor
     const verificationIndex = whitelistedNumbersTable.findIndex(
         w => w.whatsapp_number === whatsappNumber && w.status === 'pending_registration'
     );
@@ -228,22 +209,20 @@ app.post('/api/auth/register-main-owner', async (req, res) => {
             email: email,
             password: hashedPassword,
             role: 'main_owner',
-            parent_id: "proprietor-god-uuid-000000", // Rooted directly to Proprietor
-            main_owner_id: uniqueMainOwnerId,       // Sub-root cluster base identity
+            parent_id: "proprietor-god-uuid-000000",
+            main_owner_id: uniqueMainOwnerId,
             is_unlimited: false,
-            per_msg_cost_pkr: 1.50, // Default baseline cost setup
+            per_msg_cost_pkr: 1.50,
             wallet_balance: 0.00,
             status: 'active'
         };
 
         usersTable.push(newMainOwner);
-        
-        // Update Whitelist Status records
         whitelistedNumbersTable[verificationIndex].status = 'registered';
 
         return res.status(201).json({
             success: true,
-            message: "Cluster setup successful. You are registered as the Main Owner of this dashboard.",
+            message: "Cluster setup successful. You are registered as the Main Owner.",
             mainOwnerId: uniqueMainOwnerId
         });
     } catch (error) {
@@ -251,7 +230,6 @@ app.post('/api/auth/register-main-owner', async (req, res) => {
     }
 });
 
-// [HIERARCHY MANAGEMENT ROUTE] - Create Lower-Tier Accounts (Co-Owner, Admin, Child)
 app.post('/api/cluster/create-user', authenticateToken, async (req, res) => {
     const actor = req.user;
     const { email, password, targetRole, whatsappNumber } = req.body;
@@ -260,14 +238,13 @@ app.post('/api/cluster/create-user', authenticateToken, async (req, res) => {
         return res.status(403).json({ success: false, message: "Child accounts do not have creation access." });
     }
 
-    // Verify structural bounds
     const actorPower = ROLES_HIERARCHY[actor.role];
     const targetPower = ROLES_HIERARCHY[targetRole];
 
     if (actorPower <= targetPower) {
         return res.status(403).json({ 
             success: false, 
-            message: `Operation denied. Your role cannot spawn a tier of equal or greater status (${targetRole.toUpperCase()}).` 
+            message: `Operation denied. Cannot spawn a tier of equal or greater status.` 
         });
     }
 
@@ -283,7 +260,7 @@ app.post('/api/cluster/create-user', authenticateToken, async (req, res) => {
             password: hashedPassword,
             role: targetRole,
             parent_id: actor.id,
-            main_owner_id: actor.main_owner_id, // Inherited cluster scope bounds
+            main_owner_id: actor.main_owner_id,
             is_unlimited: false,
             per_msg_cost_pkr: 1.50,
             wallet_balance: 0.00,
@@ -294,14 +271,13 @@ app.post('/api/cluster/create-user', authenticateToken, async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: `Account created successfully under ID: ${childNodeId}. Assigned Role: [${targetRole.toUpperCase()}]`
+            message: `Account created successfully. Assigned Role: [${targetRole.toUpperCase()}]`
         });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
 });
 
-// [PROTECTED HIERARCHY ROUTE] - Modify Any User Parameter (Bypasses to God Mode automatically if Proprietor changes rules)
 app.put('/api/cluster/update-user/:userId', authenticateToken, guardHierarchyAndAccess, async (req, res) => {
     const { perMsgCost, isUnlimited, status, newPassword } = req.body;
     const targetUserId = req.params.userId;
@@ -318,25 +294,16 @@ app.put('/api/cluster/update-user/:userId', authenticateToken, guardHierarchyAnd
             usersTable[userIndex].password = await bcrypt.hash(newPassword, salt);
         }
 
-        return res.status(200).json({ 
-            success: true, 
-            message: `Configurations for account node [${targetUserId}] successfully modified by authority command.` 
-        });
+        return res.status(200).json({ success: true, message: "Configurations successfully modified." });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
 });
 
-// [PROTECTED HIERARCHY ROUTE] - Remove User Account from Tree
 app.delete('/api/cluster/remove-user/:userId', authenticateToken, guardHierarchyAndAccess, (req, res) => {
     const targetUserId = req.params.userId;
-    
     usersTable = usersTable.filter(u => u.id !== targetUserId);
-    
-    return res.status(200).json({ 
-        success: true, 
-        message: `Account node [${targetUserId}] removed completely from system registry.` 
-    });
+    return res.status(200).json({ success: true, message: "Account node removed completely." });
 });
 
 // ==========================================
@@ -344,50 +311,38 @@ app.delete('/api/cluster/remove-user/:userId', authenticateToken, guardHierarchy
 // ==========================================
 app.post('/api/whatsapp/send-message', authenticateToken, async (req, res) => {
     const actor = req.user;
-    const { destinationPhone, messagePayload, metaPhoneId, metaAccessToken } = req.body;
+    const { destinationPhone, messagePayload, metaPhoneId } = req.body;
 
     try {
         const sessionUser = usersTable.find(u => u.id === actor.id);
 
-        // BILLING FLOW / GOD MODE OVERRIDE ENGINE
-        // Skip balance checks if user has unlimited access configuration enabled, or if it is the primary Proprietor account
         if (!sessionUser.is_unlimited && sessionUser.email !== PROPRIETOR_EMAIL) {
             const dynamicCost = sessionUser.per_msg_cost_pkr;
-            
             if (sessionUser.wallet_balance < dynamicCost) {
-                return res.status(402).json({ 
-                    success: false, 
-                    message: "Transaction Aborted. Insufficient funds in cluster wallet balance. Please contact your manager." 
-                });
+                return res.status(402).json({ success: false, message: "Insufficient funds in cluster wallet balance." });
             }
-            
-            // Deduct system usage allocation pricing
             sessionUser.wallet_balance -= dynamicCost;
         }
 
-        // Mock Execution layer for Meta Webhook Interfaces. Replace URL with Meta Production Endpoints when live.
-        console.log(`[META TELECOM HUB] Routing message outward via node ID: ${metaPhoneId || 'System-Default'}`);
-        
+        console.log(`[META] Message routed via node ID: ${metaPhoneId || 'System-Default'}`);
         return res.status(200).json({
             success: true,
-            message: "Message processed through engine successfully.",
+            message: "Message processed successfully.",
             deduction: sessionUser.is_unlimited ? "0.00 PKR (Unlimited Mode)" : `${sessionUser.per_msg_cost_pkr} PKR`,
             currentBalanceRemaining: sessionUser.wallet_balance
         });
-
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
 });
 
 // ==========================================
-// 5. ENGINE START INITIALIZATION ENGINE
+// 5. ENGINE START INITIALIZATION
 // ==========================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`================================================================`);
     console.log(` SYSTEM FILE: crm_system.js IS LIVE                             `);
-    console.log(` Active Engine Terminal Port Reference Address: ${PORT}          `);
-    console.log(` SYSTEM CONFIGURATION: GOD MODE MAPPED TO SUPREME PROPRIETOR     `);
+    console.log(` Terminal Port Reference Address: ${PORT}                      `);
     console.log(`================================================================`);
 });
