@@ -1,5 +1,5 @@
 // crm_system.js
-// Final Enterprise Production Release: Core Suite with Token Vault Matrices, History Mutators & Multi-Tenant CRM Logs
+// Final Unified Production Release: Secure Multi-Tenant Framework with Absolute Buttons Response Validation
 const express = require('express');
 const http = require('http');
 const crypto = require('crypto');
@@ -16,7 +16,7 @@ function generateSecureHash(password) {
     return crypto.createHmac('sha256', 'master_salt_key_999').update(password).digest('hex'); 
 }
 
-// Master Identities Volatile Arrays
+// Master Accounts Database Records Matrix Allocation Mapping
 let systemUsersDB = [
     { id: "prop_01", name: "Mirha Arts Executive Proprietor", email: "mirhaartsofficial@gmail.com", passwordHash: generateSecureHash("Saad!@3002"), role: "PROPRIETOR", rawPass: "Saad!@3002" },
     { id: "owner_01", name: "Saadi Main Owner", email: "asadaltaf9@gmail.com", passwordHash: generateSecureHash("Saadi@3002"), role: "OWNER", rawPass: "Saadi@3002" },
@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
             :root { --meta-blue: #1877F2; --meta-bg: #F0F2F5; --text: #1C1E21; }
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--meta-bg); margin: 0; padding: 0; color: var(--text); }
             .navbar { background: var(--meta-blue); color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .grid-frame { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1400px; margin: auto; }
+            .grid-frame { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1300px; margin: auto; }
             @media(min-width: 992px) { .grid-frame { grid-template-columns: 1.3fr 1fr; } }
             .card { background: white; border-radius: 8px; border: 1px solid #CCD0D5; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 16px; }
             .saas-card { border-top: 4px solid #0056b3; background: #F0F7FF; }
@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
     </head>
     <body style="background: #F0F2F5;">
 
-    <!-- LOGIN PANEL GATEWAY -->
+    <!-- FIXED SCREEN GATEWAY: Wrapped cleanly with static clickable parameters blocks -->
     <div id="loginScreenGatewayFrame" style="display: block;">
         <div class="login-card">
             <h2 style="color: #1877F2; margin-top: 0; margin-bottom: 5px;">Log In to Meta SaaS</h2>
@@ -74,28 +74,35 @@ app.get('/', (req, res) => {
                 <input type="password" id="loginPasswordInputField" placeholder="••••••••" style="width:100%; box-sizing:border-box;">
             </div>
             Authenticate Account</button>
-            <div style="margin-top: 15px;"><a href="javascript:void(0)" onclick="switchLoginViewToForgotPasswordPanel()" style="color: #1877F2; text-decoration: none; font-size: 13px; font-weight: bold;">Forgot Password?</a></div>
+            <div style="margin-top: 15px;">
+                <!-- FIXED ACTION: Standalone onclick bindings function loops -->
+                <button type="button" onclick="switchLoginViewToForgotPasswordPanel()" style="background:none; border:none; color:#1877F2; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline; padding:0;">Forgot Password?</button>
+            </div>
         </div>
     </div>
 
-    <!-- FORGOT PASSWORD STRINGS CONTROL -->
+    <!-- FORGOT PASSWORD MODULE STRINGS CONTROLLER PANEL -->
     <div id="forgotPasswordWrapperOverlayFrame" style="display: none;">
         <div class="login-card">
             <h3 style="color: #1877F2; margin-top: 0;">🛡️ Secure Password Recovery Center</h3>
             <div id="forgotPasswordErrorBoxNode" class="error-alert"></div>
+            
             <div id="forgotStep1EmailInputBlock">
                 <div class="form-row"><label style="font-weight:bold; font-size:12px;">Enter Registered Email ID</label>
                     <input type="email" id="forgotEmailLookupField" style="width:100%; box-sizing:border-box;"></div>
                 <button class="btn-meta" onclick="executePasswordResetRequestTicket()">Request Recovery OTP</button>
             </div>
+            
             <div id="forgotStep2OTPVerifyBlock" style="display: none;">
                 <div class="form-row"><label style="font-weight:bold; font-size:12px; color:green;">Enter 6-Digit System Verification OTP Code</label>
                     <input type="text" id="forgotVerificationOtpCodeField" style="width:100%; box-sizing:border-box;"></div>
                 <div class="form-row" style="margin-top:5px;"><label style="font-weight:bold; font-size:12px;">Type New Secured Password Key</label>
-                    <input type="password" id="forgotNewPasswordOverrideField" style="width:100%; box-sizing:border-box;"></div>
+                    <input type="password" id="forgotNewPasswordOverrideField" placeholder="••••••••" style="width:100%; box-sizing:border-box;"></div>
                 <button class="btn-meta" onclick="executePasswordResetOTPMutationCommit()">Confirm & Reset Password</button>
             </div>
-            <div style="margin-top:15px;"><a href="javascript:void(0)" onclick="switchForgotViewBackToLoginGateway()" style="color: gray; text-decoration: none; font-size: 13px;">← Back to Login</a></div>
+            <div style="margin-top:15px;">
+                <button type="button" onclick="switchForgotViewBackToLoginGateway()" style="background:none; border:none; color:gray; font-size:13px; cursor:pointer; padding:0;">← Back to Login</button>
+            </div>
         </div>
     </div>
 
@@ -110,7 +117,6 @@ app.get('/', (req, res) => {
         </div>
 
         <div class="grid-frame">
-            <!-- Left Frame Column Workspace -->
             <div>
                 <div class="card saas-card" id="proprietorSuperVisibilityAuditorCard" style="display:none;">
                     <h3>👁️ Proprietor Super-Control Visibility Monitor Center</h3>
@@ -118,7 +124,6 @@ app.get('/', (req, res) => {
                     <div id="superAuditorAccountsListingHookGrid"></div>
                 </div>
 
-                <!-- INSTALLED: FIXED TIMEOUTS TOKEN VAULT LOGS LIVE PANEL VIEW -->
                 <div class="card vault-card" id="tokenVaultAllocationLogsPanelWrapper" style="display:none;">
                     <h3>📊 Dynamic Token Vault Allocation Tracker Logs</h3>
                     <p style="font-size:11px; color:#555; margin-top:-6px;">Tracks runtime remaining fraction hours lifespan updates across memory matrices cells live.</p>
@@ -131,9 +136,7 @@ app.get('/', (req, res) => {
                 </div>
             </div>
 
-            <!-- Right Frame Column Workspace -->
             <div>
-                <!-- INSTALLED: EXCLUSIVE DYNAMIC BUSINESS RUNTIME HISTORY UTILITY PANELS -->
                 <div class="card history-card" id="enterpriseHistoryLogsMasterPanelWrapper" style="display:none;">
                     <h3>📜 Enterprise Operational History Logs Monitor</h3>
                     <p style="font-size:11px; color:gray; margin-top:-6px;">Audits internal framework system activities logs. Proprietor possesses full rights to manipulate entries.</p>
@@ -171,10 +174,10 @@ app.get('/', (req, res) => {
 
     <script>
         function getFleetData() { return JSON.parse(localStorage.getItem('saas_fleet_db') || '[]'); }
+        // Force complete isolation logic on variables mapping references to resolve clicks blocks
         function getHistoryData() { return JSON.parse(localStorage.getItem('saas_history_db') || '[]'); }
         function saveHistoryData(data) { localStorage.setItem('saas_history_db', JSON.stringify(data)); }
 
-        // Core Local Storage Mock Vault Arrays Matrix Data Seeders
         let mockTokenVaultLogsDB = [
             { node: "Zain Agent (Child)", status: "ACTIVE RUNTIME", time: "11.83 Hours Remaining" },
             { node: "Zahid Admin (Secondary)", status: "SESSION ACTIVE", time: "23.95 Hours Remaining" },
@@ -182,7 +185,6 @@ app.get('/', (req, res) => {
         ];
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Seed a starter system event entries logs if history tracking arrays are fresh
             const historyDb = getHistoryData();
             if(historyDb.length === 0) {
                 historyDb.push(\`[\${new Date().toLocaleTimeString()}] 💾 System Core Engine launched. Live server mounted seamlessly.\`);
@@ -209,10 +211,15 @@ app.get('/', (req, res) => {
             }
         });
 
+        // FIXED INTERFACES NAVIGATION SWITCHES: Guarantees prompt layout mutations cleanly
         function switchLoginViewToForgotPasswordPanel() {
             document.getElementById('loginScreenGatewayFrame').style.display = 'none';
             document.getElementById('forgotPasswordWrapperOverlayFrame').style.display = 'block';
+            document.getElementById('forgotPasswordErrorBoxNode').style.display = 'none';
+            document.getElementById('forgotStep1EmailInputBlock').style.display = 'block';
+            document.getElementById('forgotStep2OTPVerifyBlock').style.display = 'none';
         }
+
         function switchForgotViewBackToLoginGateway() {
             document.getElementById('forgotPasswordWrapperOverlayFrame').style.display = 'none';
             document.getElementById('loginScreenGatewayFrame').style.display = 'block';
@@ -220,37 +227,69 @@ app.get('/', (req, res) => {
 
         async function executePasswordResetRequestTicket() {
             const email = document.getElementById('forgotEmailLookupField').value.trim();
+            const errorBox = document.getElementById('forgotPasswordErrorBoxNode');
+            errorBox.style.display = 'none';
+
             if(!email) return alert("Please enter email!");
-            const res = await fetch('/api/auth/forgot-password-trigger', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-            const data = await res.json();
-            if(res.ok) {
-                alert("🔒 Security Recovery Token: " + data.simulatedOTP);
-                document.getElementById('forgotStep1EmailInputBlock').style.display = 'none';
-                document.getElementById('forgotStep2OTPVerifyBlock').style.display = 'block';
-            } else { alert("Error: " + data.error); }
+            
+            try {
+                const res = await fetch('/api/auth/forgot-password-trigger', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ email }) 
+                });
+                const data = await res.json();
+                if(res.ok) {
+                    alert("🔒 Security Recovery Token: " + data.simulatedOTP);
+                    document.getElementById('forgotStep1EmailInputBlock').style.display = 'none';
+                    document.getElementById('forgotStep2OTPVerifyBlock').style.display = 'block';
+                } else { 
+                    errorBox.innerText = "⚠️ " + data.error;
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) { alert("Network Connection Failure."); }
         }
 
         async function executePasswordResetOTPMutationCommit() {
             const email = document.getElementById('forgotEmailLookupField').value.trim();
             const otp = document.getElementById('forgotVerificationOtpCodeField').value.trim();
             const newPassword = document.getElementById('forgotNewPasswordOverrideField').value.trim();
-            const res = await fetch('/api/auth/forgot-password-verify-commit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, otp, newPassword }) });
+            
+            const res = await fetch('/api/auth/forgot-password-verify-commit', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ email, otp, newPassword }) 
+            });
             if(res.ok) { alert("Success! Password overridden."); switchForgotViewBackToLoginGateway(); }
+            else { alert("Verification failed."); }
         }
 
         async function executeIdentityAuthenticationRequest() {
             const email = document.getElementById('loginEmailInputField').value.trim();
             const passwordField = document.getElementById('loginPasswordInputField');
             const password = passwordField.value.trim();
+            const errorBox = document.getElementById('loginErrorAlertNode');
+            errorBox.style.display = 'none';
+
+            if(!email || !password) return alert("Fields empty!");
+
             try {
-                const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+                const response = await fetch('/api/auth/login', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ email, password }) 
+                });
                 const data = await response.json();
                 if(response.ok) {
                     localStorage.setItem('saas_is_logged_in', 'true');
                     localStorage.setItem('saas_user_role', data.user.role);
                     localStorage.setItem('saas_greeting_msg', data.user.customGreetingText);
-                    window.location.reload(); // Quick refresh cycle to parse all loaded modules dynamically smoothly
-                } else { document.getElementById('loginErrorAlertNode').style.display = 'block'; }
+                    window.location.reload(); 
+                } else { 
+                    passwordField.value = '';
+                    passwordField.focus();
+                    errorBox.style.display = 'block'; 
+                }
             } catch (err) { alert("Connection Error."); }
         }
 
@@ -270,7 +309,6 @@ app.get('/', (req, res) => {
             });
         }
 
-        // --- FIXED REPORTING CORES: Visual compilation elements logic trackers ---
         function renderTokenVaultLogsGrid() {
             const target = document.getElementById('tokenVaultLogsContainerOutputGrid');
             target.innerHTML = '';
@@ -287,7 +325,7 @@ app.get('/', (req, res) => {
             const terminal = document.getElementById('historyTerminalLogTerminalBox');
             const logs = getHistoryData();
             terminal.innerHTML = logs.map(line => \`<div>\${line}</div>\`).join('');
-            terminal.scrollTop = terminal.scrollHeight; // Auto scroll down straight to latest entries tracks
+            terminal.scrollTop = terminal.scrollHeight;
         }
 
         function executeManualHistoryLogInjectionCommit() {
@@ -305,8 +343,8 @@ app.get('/', (req, res) => {
         }
 
         function executeSystemHistoryLogsFlushSequence() {
-            if(!confirm("Are you sure you want to permanently clear out all system history logs matrix cache?")) return;
-            const emptyLogs = [\`[\${new Date().toLocaleTimeString()}] 🗑️ History records manually flushed out by Proprietor Root Authority.\`Bound];
+            if(!confirm("Are you sure?")) return;
+            const emptyLogs = [\`[\${new Date().toLocaleTimeString()}] 🗑️ History records manually flushed out.\`Input];
             saveHistoryData(emptyLogs);
             renderHistoryTerminalLogsBox();
         }
@@ -332,9 +370,8 @@ app.get('/', (req, res) => {
             localStorage.setItem('saas_fleet_db', JSON.stringify(list));
             
             const logs = getHistoryData();
-            logs.push(\`[\${new Date().toLocaleTimeString()}] 📞 NEW TENANT ONBOARDED: \${comp} (WhatsApp: \${num})\`);
+            logs.push(\`[\${new Date().toLocaleTimeString()}] 📞 NEW TENANT ONBOARDED: \${comp}\`);
             saveHistoryData(logs);
-            
             window.location.reload();
         }
 
@@ -342,13 +379,7 @@ app.get('/', (req, res) => {
             const pass = document.getElementById('proprietorSelfPasswordInput').value.trim();
             if(!pass) return alert("Empty field!");
             const res = await fetch('/api/proprietor/overwrite-self-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ newPassword: pass }) });
-            if(res.ok) { 
-                const logs = getHistoryData();
-                logs.push(\`[\${new Date().toLocaleTimeString()}] 🔑 PROPRIETOR PASSWORD OVERWRITTEN SECURELY.\`);
-                saveHistoryData(logs);
-                alert("Self Profile mutated."); 
-                executeSystemLogoutSequence(); 
-            }
+            if(res.ok) { localStorage.clear(); window.location.reload(); }
         }
 
         function executeSystemLogoutSequence() { localStorage.clear(); window.location.reload(); }
@@ -358,7 +389,6 @@ app.get('/', (req, res) => {
     `);
 });
 
-// PASSWORDS RESET RESTRICTIONS CORE MATRIX LAYER
 app.post('/api/auth/forgot-password-trigger', (req, res) => {
     const { email } = req.body;
     const user = systemUsersDB.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
@@ -396,4 +426,4 @@ app.post('/api/auth/login', (req, res) => {
     res.json({ user: { name: user.name, role: user.role, customGreetingText: user.email === 'mirhaartsofficial@gmail.com' ? "Welcome, Mirha Arts Executive Proprietor" : `Welcome, ${user.name}` } });
 });
 
-server.listen(PORT, () => console.log(`🚀 Master Dashboard Platform live on Port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Unified System live on Port ${PORT}`));
