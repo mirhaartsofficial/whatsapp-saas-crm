@@ -1,18 +1,18 @@
 {
-  "name": "whatsapp-meta-saas-crm",
+  "name": "meta-saas-crm",
   "version": "1.0.0",
-  "description": "Secure Multi-Tenant WhatsApp Business API Dashboard",
+  "description": "Meta SaaS Command Base",
   "main": "crm_system.js",
   "scripts": {
     "start": "node crm_system.js"
   },
   "dependencies": {
-    "axios": "^1.7.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "crypto": "^1.0.1",
     "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.3.1",
-    "socket.io": "^4.7.5"
+    "nodemailer": "^6.9.13"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
