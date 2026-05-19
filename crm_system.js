@@ -1,5 +1,6 @@
 // crm_system.js
-// Final Unified Production Release: Secure Multi-Tenant Framework with Absolute Buttons Response Validation
+// Final Stable Release: Unified Multi-Tenant SaaS Control Center (SECURED PATCH)
+
 const express = require('express');
 const http = require('http');
 const crypto = require('crypto');
@@ -7,25 +8,64 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin: '*', credentials: true }));
 
-const PORT = process.env.PORT || 10000; 
+// FIX 1: CORS FIX (credentials + wildcard not allowed)
+app.use(cors({
+    origin: true, // allow dynamic origin
+    credentials: true
+}));
+
+const PORT = process.env.PORT || 10000;
 const server = http.createServer(app);
 
-function generateSecureHash(password) { 
-    return crypto.createHmac('sha256', 'master_salt_key_999').update(password).digest('hex'); 
+// FIX 2: Move secret salt to env
+const MASTER_SALT = process.env.MASTER_SALT || "fallback_master_salt_key_999";
+
+// Simple token system (demo)
+const SESSION_SECRET = process.env.SESSION_SECRET || "demo_session_secret_123";
+
+// In-memory session store
+let sessionDB = {};
+
+function generateSecureHash(password) {
+    return crypto.createHmac('sha256', MASTER_SALT).update(password).digest('hex');
 }
 
-// Master Accounts Database Records Matrix Allocation Mapping
+function generateSessionToken() {
+    return crypto.randomBytes(24).toString("hex");
+}
+
+// Fixed Accounts Framework Database Matrix
 let systemUsersDB = [
-    { id: "prop_01", name: "Mirha Arts Executive Proprietor", email: "mirhaartsofficial@gmail.com", passwordHash: generateSecureHash("Saad!@3002"), role: "PROPRIETOR", rawPass: "Saad!@3002" },
-    { id: "owner_01", name: "Saadi Main Owner", email: "asadaltaf9@gmail.com", passwordHash: generateSecureHash("Saadi@3002"), role: "OWNER", rawPass: "Saadi@3002" },
-    { id: "co_owner_01", name: "Kamran Co-Owner", email: "kamran@biz.com", passwordHash: generateSecureHash("co123"), role: "CO-OWNER", rawPass: "co123" },
-    { id: "admin_01", name: "Zahid Admin", email: "zahid@biz.com", passwordHash: generateSecureHash("admin123"), role: "ADMIN", rawPass: "admin123" },
-    { id: "child_01", name: "Zain Agent", email: "zain@biz.com", passwordHash: generateSecureHash("agent123"), role: "AGENT", rawPass: "agent123" }
+    { id: "prop_01", name: "Mirha Arts Executive Proprietor", email: "mirhaartsofficial@gmail.com", passwordHash: generateSecureHash("Saad!@3002"), role: "PROPRIETOR" },
+    { id: "owner_01", name: "Saadi Main Owner", email: "asadaltaf9@gmail.com", passwordHash: generateSecureHash("Saadi@3002"), role: "OWNER" },
+    { id: "co_owner_01", name: "Kamran Co-Owner", email: "kamran@biz.com", passwordHash: generateSecureHash("co123"), role: "CO-OWNER" },
+    { id: "admin_01", name: "Zahid Admin", email: "zahid@biz.com", passwordHash: generateSecureHash("admin123"), role: "ADMIN" },
+    { id: "child_01", name: "Zain Agent", email: "zain@biz.com", passwordHash: generateSecureHash("agent123"), role: "AGENT" }
 ];
 
+// OTP cache now stores OTP + expiry
 let generatedOTPCacheDB = {};
+
+// Middleware: session auth
+function requireAuth(req, res, next) {
+    const token = req.headers['x-session-token'];
+    if (!token || !sessionDB[token]) {
+        return res.status(401).json({ error: "Unauthorized. Login required." });
+    }
+    req.user = sessionDB[token];
+    next();
+}
+
+// Middleware: role check
+function requireRole(role) {
+    return (req, res, next) => {
+        if (!req.user || req.user.role !== role) {
+            return res.status(403).json({ error: "Forbidden: insufficient permissions." });
+        }
+        next();
+    };
+}
 
 app.get('/', (req, res) => {
     res.send(`
@@ -36,10 +76,10 @@ app.get('/', (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Meta SaaS Command Base Framework</title>
         <style>
-            :root { --meta-blue: #1877F2; --meta-zinc: #242526; --meta-bg: #F0F2F5; --text: #1C1E21; }
+            :root { --meta-blue: #1877F2; --meta-bg: #F0F2F5; --text: #1C1E21; }
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--meta-bg); margin: 0; padding: 0; color: var(--text); }
             .navbar { background: var(--meta-blue); color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .grid-frame { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1300px; margin: auto; }
+            .grid-frame { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1400px; margin: auto; }
             @media(min-width: 992px) { .grid-frame { grid-template-columns: 1.3fr 1fr; } }
             .card { background: white; border-radius: 8px; border: 1px solid #CCD0D5; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 16px; }
             .saas-card { border-top: 4px solid #0056b3; background: #F0F7FF; }
@@ -59,6 +99,7 @@ app.get('/', (req, res) => {
     </head>
     <body style="background: #F0F2F5;">
 
+    <!-- 1. LOGIN GATEWAY CARD SCREEN -->
     <div id="loginScreenGatewayFrame" style="display: block;">
         <div class="login-card">
             <h2 style="color: #1877F2; margin-top: 0; margin-bottom: 5px;">Log In to Meta SaaS</h2>
@@ -72,13 +113,17 @@ app.get('/', (req, res) => {
                 <label style="font-weight: bold; font-size: 13px;">Password Verification Key</label>
                 <input type="password" id="loginPasswordInputField" placeholder="••••••••" style="width:100%; box-sizing:border-box;">
             </div>
-            Authenticate Account</button>
+
+            <!-- FIX 3: Button fixed -->
+            <button class="btn-meta" onclick="executeIdentityAuthenticationRequest()">Authenticate Account</button>
+
             <div style="margin-top: 15px;">
                 <button type="button" onclick="switchLoginViewToForgotPasswordPanel()" style="background:none; border:none; color:#1877F2; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline; padding:0;">Forgot Password?</button>
             </div>
         </div>
     </div>
 
+    <!-- 2. SECURE OTP PASSWORD RECOVERY SCREEN -->
     <div id="forgotPasswordWrapperOverlayFrame" style="display: none;">
         <div class="login-card">
             <h3 style="color: #1877F2; margin-top: 0;">🛡️ Secure Password Recovery Center</h3>
@@ -103,6 +148,7 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
+    <!-- 3. PRODUCTION WORKSPACE INTERFACE SHELL -->
     <div id="mainDashboardWorkspaceShell" style="display: none;">
         <div class="navbar">
             <div style="font-weight: bold; font-size: 18px;" id="welcomeLabelStringNode">Welcome...</div>
@@ -179,6 +225,10 @@ app.get('/', (req, res) => {
             { node: "Mirha Arts Official (Channel)", status: "TOKEN SYNCED", time: "Permanent Cloud Loop" }
         ];
 
+        function getSessionToken() {
+            return localStorage.getItem("saas_session_token");
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const historyDb = getHistoryData();
             if(historyDb.length === 0) {
@@ -230,11 +280,13 @@ app.get('/', (req, res) => {
                 const res = await fetch('/api/auth/forgot-password-trigger', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ email }) 
+                    body: JSON.stringify({ email: email }) 
                 });
                 const data = await res.json();
+
                 if(res.ok) {
-                    alert("🔒 Security Recovery Token: " + data.simulatedOTP);
+                    // OTP shown only for demo/testing
+                    alert("🔒 Security Recovery Token (Demo OTP): " + data.simulatedOTP);
                     document.getElementById('forgotStep1EmailInputBlock').style.display = 'none';
                     document.getElementById('forgotStep2OTPVerifyBlock').style.display = 'block';
                 } else { 
@@ -252,10 +304,17 @@ app.get('/', (req, res) => {
             const res = await fetch('/api/auth/forgot-password-verify-commit', { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ email, otp, newPassword }) 
+                body: JSON.stringify({ email: email, otp: otp, newPassword: newPassword }) 
             });
-            if(res.ok) { alert("Success! Password overridden."); switchForgotViewBackToLoginGateway(); }
-            else { alert("Verification failed."); }
+
+            if(res.ok) { 
+                alert("Success! Password overridden."); 
+                switchForgotViewBackToLoginGateway(); 
+            }
+            else { 
+                const data = await res.json();
+                alert(data.error || "Verification failed."); 
+            }
         }
 
         async function executeIdentityAuthenticationRequest() {
@@ -271,13 +330,19 @@ app.get('/', (req, res) => {
                 const response = await fetch('/api/auth/login', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ email, password }) 
+                    body: JSON.stringify({ email: email, password: password }) 
                 });
+
                 const data = await response.json();
+
                 if(response.ok) {
                     localStorage.setItem('saas_is_logged_in', 'true');
                     localStorage.setItem('saas_user_role', data.user.role);
                     localStorage.setItem('saas_greeting_msg', data.user.customGreetingText);
+
+                    // FIX: store session token
+                    localStorage.setItem("saas_session_token", data.sessionToken);
+
                     window.location.reload(); 
                 } else { 
                     passwordField.value = '';
@@ -288,18 +353,27 @@ app.get('/', (req, res) => {
         }
 
         async function fetchSuperAuditorAccountsGrid() {
-            const response = await fetch('/api/proprietor/audit-directory-stream');
+            const response = await fetch('/api/proprietor/audit-directory-stream', {
+                headers: { "x-session-token": getSessionToken() }
+            });
+
+            if(!response.ok) return alert("Unauthorized access.");
+
             const users = await response.json();
             const hookGrid = document.getElementById('superAuditorAccountsListingHookGrid');
             hookGrid.innerHTML = '';
+
             users.forEach(u => {
-                hookGrid.innerHTML += \`
-                <div class="fleet-row" style="border-left:5px solid #dc2626; margin-bottom:8px; padding:10px; background:#fff; border:1px solid #ddd;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div><strong>👤 \${u.name}</strong> [\${u.role}]<br><span style="font-size:11px; color:#555;">Email: \${u.email}</span><br><span style="font-size:11px; color:green; font-weight:bold;">Password: \${u.rawPass}</span></div>
-                        <div><button class="view-btn" onclick="alert('Encryption tunnel mounted for chat logging inspection.')">Chats</button></div>
-                    </div>
-                </div>\`;
+                hookGrid.innerHTML += 
+                '<div class="fleet-row" style="border-left:5px solid #dc2626; margin-bottom:8px; padding:10px; background:#fff; border:1px solid #ddd;">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                        '<div>' +
+                            '<strong>👤 ' + u.name + '</strong> [' + u.role + ']<br>' +
+                            '<span style="font-size:11px; color:#555;">Email: ' + u.email + '</span>' +
+                        '</div>' +
+                        '<div><button class="view-btn" onclick="alert(\\'Encryption tunnel active.\\')">Chats</button></div>' +
+                    '</div>' +
+                '</div>';
             });
         }
 
@@ -307,11 +381,7 @@ app.get('/', (req, res) => {
             const target = document.getElementById('tokenVaultLogsContainerOutputGrid');
             target.innerHTML = '';
             mockTokenVaultLogsDB.forEach(log => {
-                target.innerHTML += \`
-                <div class="fleet-row" style="border-left:5px solid #b91c1c; margin-bottom:6px; padding:8px; background:#fff;">
-                    <strong>⚙️ \${log.node}</strong> - <span style="color:#b91c1c; font-weight:bold;">\${log.status}</span><br>
-                    <span style="font-size:11px; color:gray;">Life Balance Factor: \${log.time}</span>
-                </div>\`;
+                target.innerHTML += '<div class="fleet-row" style="border-left:5px solid #b91c1c; margin-bottom:6px; padding:8px; background:#fff;"><strong>⚙️ ' + log.node + '</strong> - <span style="color:#b91c1c; font-weight:bold;">' + log.status + '</span><br><span style="font-size:11px; color:gray;">Life Balance Factor: ' + log.time + '</span></div>';
             });
         }
 
@@ -333,7 +403,7 @@ app.get('/', (req, res) => {
             
             renderHistoryTerminalLogsBox();
             field.value = '';
-            alert("Success! Operational history trace log mutated inside memory.");
+            alert("Success! History log mutated.");
         }
 
         function executeSystemHistoryLogsFlushSequence() {
@@ -348,10 +418,7 @@ app.get('/', (req, res) => {
             const targetGrid = document.getElementById('proprietorFleetNumbersOutputGrid');
             targetGrid.innerHTML = '';
             list.forEach(tenant => {
-                targetGrid.innerHTML += \`
-                    <div class="fleet-row" style="background:#fff; border:1px solid #ddd; padding:10px; margin-bottom:6px;">
-                        <strong>🏢 \${tenant.businessName}</strong> [Line: \${tenant.num}]
-                    </div>\`;
+                targetGrid.innerHTML += '<div class="fleet-row" style="background:#fff; border:1px solid #ddd; padding:10px; margin-bottom:6px;"><strong>🏢 ' + tenant.businessName + '</strong> [Line: ' + tenant.num + ']</div>';
             });
         }
 
@@ -359,21 +426,42 @@ app.get('/', (req, res) => {
             const num = document.getElementById('onboardPhoneInput').value.trim();
             const comp = document.getElementById('onboardCompanyInput').value.trim();
             if(!num || !comp) return alert("Fields empty!");
+
             const list = getFleetData();
-            list.push({ num, businessName:comp });
+            list.push({ num: num, businessName: comp });
             localStorage.setItem('saas_fleet_db', JSON.stringify(list));
             
             const logs = getHistoryData();
             logs.push("[" + new Date().toLocaleTimeString() + "] 📞 NEW TENANT ONBOARDED: " + comp);
             saveHistoryData(logs);
+
             window.location.reload();
         }
 
         async function executeProprietorSelfProfileOverwrite() {
             const pass = document.getElementById('proprietorSelfPasswordInput').value.trim();
             if(!pass) return alert("Empty field!");
-            const res = await fetch('/api/proprietor/overwrite-self-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ newPassword: pass }) });
-            if(res.ok) { localStorage.clear(); window.location.reload(); }
+
+            const res = await fetch('/api/proprietor/overwrite-self-profile', { 
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    "x-session-token": getSessionToken()
+                }, 
+                body: JSON.stringify({ newPassword: pass }) 
+            });
+
+            if(res.ok) { 
+                localStorage.clear(); 
+                window.location.reload(); 
+            } else {
+                alert("Unauthorized / Failed.");
+            }
+        }
+
+        function executeSystemLogoutSequence() {
+            localStorage.clear();
+            window.location.reload();
         }
     </script>
     </body>
@@ -381,41 +469,114 @@ app.get('/', (req, res) => {
     `);
 });
 
+// OTP Trigger
 app.post('/api/auth/forgot-password-trigger', (req, res) => {
     const { email } = req.body;
+
+    if (!email) return res.status(400).json({ error: "Email required." });
+
     const user = systemUsersDB.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
     if (!user) return res.status(404).json({ error: "Identity string missing." });
 
     if (user.role === 'ADMIN' || user.role === 'AGENT') {
         return res.status(403).json({ error: "Password change karne ke liye apne co owner se raabta karein!" });
     }
+
     const simulatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    generatedOTPCacheDB[email.toLowerCase()] = simulatedOTP; 
+
+    // FIX: OTP expiry 2 minutes
+    generatedOTPCacheDB[email.toLowerCase()] = {
+        otp: simulatedOTP,
+        expiresAt: Date.now() + (2 * 60 * 1000)
+    };
+
     res.json({ success: true, simulatedOTP });
 });
 
+// OTP Verify + Commit
 app.post('/api/auth/forgot-password-verify-commit', (req, res) => {
     const { email, otp, newPassword } = req.body;
-    if (generatedOTPCacheDB[email.toLowerCase()] !== otp) return res.status(400).json({ error: "OTP failed" });
+
+    if (!email || !otp || !newPassword) {
+        return res.status(400).json({ error: "Missing fields." });
+    }
+
+    const cache = generatedOTPCacheDB[email.toLowerCase()];
+    if (!cache) return res.status(400).json({ error: "OTP not generated." });
+
+    if (Date.now() > cache.expiresAt) {
+        delete generatedOTPCacheDB[email.toLowerCase()];
+        return res.status(400).json({ error: "OTP expired." });
+    }
+
+    if (cache.otp !== otp) return res.status(400).json({ error: "OTP failed" });
+
     let user = systemUsersDB.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-    user.passwordHash = generateSecureHash(newPassword); user.rawPass = newPassword;
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    user.passwordHash = generateSecureHash(newPassword);
+
+    // FIX: OTP single-use
+    delete generatedOTPCacheDB[email.toLowerCase()];
+
     res.json({ success: true });
 });
 
-app.get('/api/proprietor/audit-directory-stream', (req, res) => res.json(systemUsersDB));
+// FIX: Protected proprietor audit endpoint + removed raw password leakage
+app.get('/api/proprietor/audit-directory-stream', requireAuth, requireRole("PROPRIETOR"), (req, res) => {
+    const safeUsers = systemUsersDB.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role
+    }));
+    res.json(safeUsers);
+});
 
-app.post('/api/proprietor/overwrite-self-profile', (req, res) => {
+// FIX: Protected overwrite endpoint
+app.post('/api/proprietor/overwrite-self-profile', requireAuth, requireRole("PROPRIETOR"), (req, res) => {
     const { newPassword } = req.body;
+    if (!newPassword) return res.status(400).json({ error: "Password required." });
+
     let user = systemUsersDB.find(u => u.role === 'PROPRIETOR');
-    user.passwordHash = generateSecureHash(newPassword); user.rawPass = newPassword;
+    user.passwordHash = generateSecureHash(newPassword);
+
     res.json({ success: true });
 });
 
+// FIX: Login case-insensitive + session token return
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
-    const user = systemUsersDB.find(u => u.email === email && u.passwordHash === generateSecureHash(password));
+
+    if (!email || !password) return res.status(400).json({ error: "Missing credentials." });
+
+    const user = systemUsersDB.find(u =>
+        u.email.toLowerCase() === email.trim().toLowerCase() &&
+        u.passwordHash === generateSecureHash(password)
+    );
+
     if (!user) return res.status(401).json({ error: "Incorrect credentials!" });
-    res.json({ user: { name: user.name, role: user.role, customGreetingText: user.email === 'mirhaartsofficial@gmail.com' ? "Welcome, Mirha Arts Executive Proprietor" : `Welcome, ${user.name}` } });
+
+    const sessionToken = generateSessionToken();
+
+    // store session
+    sessionDB[sessionToken] = {
+        id: user.id,
+        role: user.role,
+        email: user.email,
+        name: user.name
+    };
+
+    res.json({
+        sessionToken,
+        user: {
+            name: user.name,
+            role: user.role,
+            customGreetingText: user.email === 'mirhaartsofficial@gmail.com'
+                ? "Welcome, Mirha Arts Executive Proprietor"
+                : `Welcome, ${user.name}`
+        }
+    });
 });
 
 server.listen(PORT, () => console.log(`🚀 Unified System live on Port ${PORT}`));
