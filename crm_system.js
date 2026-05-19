@@ -3,7 +3,6 @@
 const express = require('express');
 const crypto = require('crypto');
 const cors = require('cors');
-const path = require('path');
 const nodemailer = require('nodemailer');
 
 const app = express();
@@ -14,9 +13,6 @@ const PORT = process.env.PORT || 10000;
 const MASTER_SALT = process.env.MASTER_SALT || 'master_salt_key_999';
 
 // --- NODEMAILER CONFIGURATION ---
-// Render Dashboard -> Environment Variables mein ye dono lazmi add karein:
-// EMAIL_USER = mirhaartsofficial@gmail.com
-// EMAIL_PASS = (Aapka Gmail 16-digit App Password - @ ki jagah %40 use karein agar zaroorat ho)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -39,7 +35,7 @@ let systemUsersDB = [
         id: "prop_01", 
         name: "Mirha Arts Executive Proprietor", 
         email: "mirhaartsofficial@gmail.com", 
-        passwordHash: generateSecureHash("Saad!@3002"), // Password updated to Saad!@3002
+        passwordHash: generateSecureHash("Saad!@3002"), // Updated Password
         role: "PROPRIETOR",
         customGreetingText: "Welcome, Respected Proprietor"
     },
@@ -630,6 +626,7 @@ app.get('/', (req, res) => {
     `);
 });
 
+// FIXED: Changed server.listen to app.listen to avoid ReferenceError
 app.listen(PORT, () => {
     console.log(`Server running securely on port ${PORT}`);
 });
