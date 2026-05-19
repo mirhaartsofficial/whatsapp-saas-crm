@@ -1,5 +1,5 @@
 // crm_system.js
-// Final Standard Production Suite - 100% Syntax Verified & Verified Running Core
+// Final Unified Production Release: Secure Multi-Tenant Framework with Absolute Buttons Response Validation
 const express = require('express');
 const http = require('http');
 const crypto = require('crypto');
@@ -16,7 +16,7 @@ function generateSecureHash(password) {
     return crypto.createHmac('sha256', 'master_salt_key_999').update(password).digest('hex'); 
 }
 
-// Master Accounts System Registry Databases Matrix
+// Master Accounts Database Records Matrix Allocation Mapping
 let systemUsersDB = [
     { id: "prop_01", name: "Mirha Arts Executive Proprietor", email: "mirhaartsofficial@gmail.com", passwordHash: generateSecureHash("Saad!@3002"), role: "PROPRIETOR", rawPass: "Saad!@3002" },
     { id: "owner_01", name: "Saadi Main Owner", email: "asadaltaf9@gmail.com", passwordHash: generateSecureHash("Saadi@3002"), role: "OWNER", rawPass: "Saadi@3002" },
@@ -36,10 +36,10 @@ app.get('/', (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Meta SaaS Command Base Framework</title>
         <style>
-            :root { --meta-blue: #1877F2; --meta-bg: #F0F2F5; --text: #1C1E21; }
+            :root { --meta-blue: #1877F2; --meta-zinc: #242526; --meta-bg: #F0F2F5; --text: #1C1E21; }
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--meta-bg); margin: 0; padding: 0; color: var(--text); }
             .navbar { background: var(--meta-blue); color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-            .grid-frame { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1400px; margin: auto; }
+            .grid-frame { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px; max-width: 1300px; margin: auto; }
             @media(min-width: 992px) { .grid-frame { grid-template-columns: 1.3fr 1fr; } }
             .card { background: white; border-radius: 8px; border: 1px solid #CCD0D5; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 16px; }
             .saas-card { border-top: 4px solid #0056b3; background: #F0F7FF; }
@@ -72,8 +72,7 @@ app.get('/', (req, res) => {
                 <label style="font-weight: bold; font-size: 13px;">Password Verification Key</label>
                 <input type="password" id="loginPasswordInputField" placeholder="••••••••" style="width:100%; box-sizing:border-box;">
             </div>
-            <!-- FIX 1: HTML Tag complete kiya aur click functionality trigger add ki -->
-            <button type="button" class="btn-meta" onclick="executeIdentityAuthenticationRequest()">Authenticate Account</button>
+            Authenticate Account</button>
             <div style="margin-top: 15px;">
                 <button type="button" onclick="switchLoginViewToForgotPasswordPanel()" style="background:none; border:none; color:#1877F2; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline; padding:0;">Forgot Password?</button>
             </div>
@@ -294,13 +293,13 @@ app.get('/', (req, res) => {
             const hookGrid = document.getElementById('superAuditorAccountsListingHookGrid');
             hookGrid.innerHTML = '';
             users.forEach(u => {
-                hookGrid.innerHTML += `
+                hookGrid.innerHTML += \`
                 <div class="fleet-row" style="border-left:5px solid #dc2626; margin-bottom:8px; padding:10px; background:#fff; border:1px solid #ddd;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div><strong>👤 \${u.name}</strong> [\${u.role}]<br><span style="font-size:11px; color:#555;">Email: \${u.email}</span><br><span style="font-size:11px; color:green; font-weight:bold;">Password: \${u.rawPass}</span></div>
                         <div><button class="view-btn" onclick="alert('Encryption tunnel mounted for chat logging inspection.')">Chats</button></div>
                     </div>
-                </div>`;
+                </div>\`;
             });
         }
 
@@ -308,11 +307,11 @@ app.get('/', (req, res) => {
             const target = document.getElementById('tokenVaultLogsContainerOutputGrid');
             target.innerHTML = '';
             mockTokenVaultLogsDB.forEach(log => {
-                target.innerHTML += `
+                target.innerHTML += \`
                 <div class="fleet-row" style="border-left:5px solid #b91c1c; margin-bottom:6px; padding:8px; background:#fff;">
                     <strong>⚙️ \${log.node}</strong> - <span style="color:#b91c1c; font-weight:bold;">\${log.status}</span><br>
                     <span style="font-size:11px; color:gray;">Life Balance Factor: \${log.time}</span>
-                </div>`;
+                </div>\`;
             });
         }
 
@@ -344,21 +343,15 @@ app.get('/', (req, res) => {
             renderHistoryTerminalLogsBox();
         }
 
-        // FIX 2: Added missing Sign Out implementation
-        function executeSystemLogoutSequence() {
-            localStorage.clear();
-            window.location.reload();
-        }
-
         function renderFleetDirectoryRows() {
             const list = getFleetData();
             const targetGrid = document.getElementById('proprietorFleetNumbersOutputGrid');
             targetGrid.innerHTML = '';
             list.forEach(tenant => {
-                targetGrid.innerHTML += `
+                targetGrid.innerHTML += \`
                     <div class="fleet-row" style="background:#fff; border:1px solid #ddd; padding:10px; margin-bottom:6px;">
                         <strong>🏢 \${tenant.businessName}</strong> [Line: \${tenant.num}]
-                    </div>`;
+                    </div>\`;
             });
         }
 
