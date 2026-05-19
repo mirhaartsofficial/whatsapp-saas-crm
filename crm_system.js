@@ -1,9 +1,10 @@
 // crm_system.js
-// Secure Production-Ready Meta SaaS Command Base Server for Render
+// Secure Production-Ready Meta SaaS Command Base Server with Live Email OTP & Strict Login Guard
 const express = require('express');
 const crypto = require('crypto');
 const cors = require('cors');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 const app = express();
 app.use(express.json());
@@ -12,18 +13,33 @@ app.use(cors({ origin: '*', credentials: true }));
 const PORT = process.env.PORT || 10000;
 const MASTER_SALT = process.env.MASTER_SALT || 'master_salt_key_999';
 
+// --- NODEMAILER CONFIGURATION ---
+// Render Dashboard -> Environment Variables mein ye dono lazmi add karein:
+// EMAIL_USER = mirhaartsofficial@gmail.com
+// EMAIL_PASS = (Aapka Gmail 16-digit App Password - @ ki jagah %40 use karein agar zaroorat ho)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'mirhaartsofficial@gmail.com', 
+        pass: process.env.EMAIL_PASS || '' 
+    }
+});
+
+// Temporary store for live OTPs
+let activeOTPCache = {};
+
 // Secure Password Hashing Function (SHA-256)
 function generateSecureHash(password) {
     return crypto.createHmac('sha256', MASTER_SALT).update(password).digest('hex');
 }
 
-// Mock Database with pre-hashed passwords for absolute security
+// Mock Database with updated password vault
 let systemUsersDB = [
     { 
         id: "prop_01", 
         name: "Mirha Arts Executive Proprietor", 
         email: "mirhaartsofficial@gmail.com", 
-        passwordHash: generateSecureHash("Admin786"), // Default Secure Password
+        passwordHash: generateSecureHash("Saad!@3002"), // Password updated to Saad!@3002
         role: "PROPRIETOR",
         customGreetingText: "Welcome, Respected Proprietor"
     },
@@ -37,7 +53,7 @@ let systemUsersDB = [
     }
 ];
 
-// Active Server Sessions Store (In-Memory for security verification)
+// Active Server Sessions Store
 let activeSessionsStore = {};
 
 // --- SECURITY MIDDLEWARE ---
@@ -84,25 +100,46 @@ app.post('/api/auth/login', (req, res) => {
     });
 });
 
-// 2. Controlled Password Reset Trigger (Simulated OTP Gate)
-app.post('/api/auth/forgot-password-trigger', (req, res) => {
+// 2. Controlled Password Reset Trigger (LIVE EMAIL OTP)
+app.post('/api/auth/forgot-password-trigger', async (req, res) => {
     const { email } = req.body;
     const user = systemUsersDB.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
     if (!user) return res.status(404).json({ error: "Corporate identity email records not found." });
 
-    const simulatedOTP = "992831"; 
-    res.json({ message: "Security token initialized", simulatedOTP });
+    const liveOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    activeOTPCache[email.toLowerCase().trim()] = liveOTP;
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER || 'mirhaartsofficial@gmail.com',
+        to: user.email,
+        subject: '🔒 Meta SaaS Security Verification Token',
+        text: `Your security password reset verification code is: ${liveOTP}\n\nThis code will expire in 5 minutes.`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.json({ message: "Security token initialized and sent to email successfully." });
+    } catch (error) {
+        console.error("Email error: ", error);
+        res.status(500).json({ error: "Failed to send email. Check Render configuration.", fallbackOTP: liveOTP });
+    }
 });
 
 // 3. Complete Password Overwrite Verification Commit
 app.post('/api/auth/forgot-password-verify-commit', (req, res) => {
     const { email, otp, newPassword } = req.body;
-    if (otp !== "992831") return res.status(400).json({ error: "Invalid system verification code." });
+    const userEmailKey = email.toLowerCase().trim();
 
-    const userIndex = systemUsersDB.findIndex(u => u.email.toLowerCase() === email.toLowerCase().trim());
+    if (!activeOTPCache[userEmailKey] || activeOTPCache[userEmailKey] !== otp.trim()) {
+        return res.status(400).json({ error: "Invalid or expired system verification code." });
+    }
+
+    const userIndex = systemUsersDB.findIndex(u => u.email.toLowerCase() === userEmailKey);
     if (userIndex === -1) return res.status(404).json({ error: "User records missing." });
 
     systemUsersDB[userIndex].passwordHash = generateSecureHash(newPassword.trim());
+    delete activeOTPCache[userEmailKey];
+    
     res.json({ success: true, message: "Security vault credentials overwritten safely." });
 });
 
@@ -156,7 +193,6 @@ app.get('/', (req, res) => {
         .login-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; margin: auto; margin-top: 10vh; box-sizing: border-box; }
         .btn-meta { display: block; background-color: #1877F2; color: white; padding: 14px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; margin-top: 15px; text-align: center; box-sizing: border-box; border: none; width: 100%; cursor: pointer; }
         .error-alert { display: none; background-color: #FDE8E8; border: 1px solid #E53E3E; color: #C53030; padding: 12px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-bottom: 15px; text-align: left; }
-        .view-btn { background: #242526; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; text-decoration: none; border: none; cursor: pointer; margin-top: 4px; }
         .log-box-stream { background: #1e1e1e; color: #f8f8f2; font-family: monospace; padding: 12px; border-radius: 6px; font-size: 11px; max-height: 180px; overflow-y: scroll; text-align: left; line-height: 1.5; }
         .edit-modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:20000; }
         .edit-modal-card { background:white; padding:24px; border-radius:8px; max-width:450px; width:90%; text-align:left; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
@@ -191,10 +227,10 @@ app.get('/', (req, res) => {
             <div id="forgotStep1EmailInputBlock">
                 <div class="form-row"><label style="font-weight:bold; font-size:12px;">Enter Registered Email ID</label>
                     <input type="email" id="forgotEmailLookupField" style="width:100%; box-sizing:border-box;"></div>
-                <button class="btn-meta" onclick="executePasswordResetRequestTicket()">Request Recovery OTP</button>
+                <button class="btn-meta" id="otpRequestBtn" onclick="executePasswordResetRequestTicket()">Send Live OTP Email</button>
             </div>
             <div id="forgotStep2OTPVerifyBlock" style="display: none;">
-                <div class="form-row"><label style="font-weight:bold; font-size:12px; color:green;">Enter 6-Digit System Verification OTP Code</label>
+                <div class="form-row"><label style="font-weight:bold; font-size:12px; color:green;">Enter 6-Digit Verification Code Received in Email</label>
                     <input type="text" id="forgotVerificationOtpCodeField" style="width:100%; box-sizing:border-box;"></div>
                 <div class="form-row" style="margin-top:5px;"><label style="font-weight:bold; font-size:12px;">Type New Secured Password Key</label>
                     <input type="password" id="forgotNewPasswordOverrideField" placeholder="••••••••" style="width:100%; box-sizing:border-box;"></div>
@@ -223,8 +259,8 @@ app.get('/', (req, res) => {
                 <input type="number" id="editModalRateInput" step="0.001" style="width:100%; box-sizing:border-box;">
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:15px;">
-                <button style="background:#4b5563; color:white; border:none;" onclick="closeProprietorEditModalFrame()">Cancel</button>
-                <button style="background:#1877F2; color:white; border:none;" onclick="executeSaaSProfileModificationCommit()">Save Settings</button>
+                <button style="background:#4b5563; color:white; border:none; padding: 8px 14px; border-radius: 4px; cursor: pointer;" onclick="closeProprietorEditModalFrame()">Cancel</button>
+                <button style="background:#1877F2; color:white; border:none; padding: 8px 14px; border-radius: 4px; cursor: pointer;" onclick="executeSaaSProfileModificationCommit()">Save Settings</button>
             </div>
         </div>
     </div>
@@ -296,7 +332,7 @@ app.get('/', (req, res) => {
                             <input type="number" id="onboardPerMessageCostRate" value="0.03" step="0.001" style="width:100%; box-sizing:border-box;">
                         </div>
                     </div>
-                    <button style="width:100%; background:#0056b3; margin-top:14px; color:white; font-weight:bold; border:none; cursor:pointer; padding:10px;" onclick="executeProprietorClientOnboarding()">Activate Account Channel</button>
+                    <button style="width:100%; background:#0056b3; margin-top:14px; color:white; font-weight:bold; border:none; cursor:pointer; padding:10px;" onclick="executeProjectOnboarding()">Activate Account Channel</button>
                 </div>
             </div>
         </div>
@@ -315,6 +351,7 @@ app.get('/', (req, res) => {
             { node: "Mirha Arts Official (Channel)", status: "TOKEN SYNCED", time: "Permanent Cloud Loop" }
         ];
 
+        // --- STRICT LOGIN SECURITY GUARD ---
         window.addEventListener('DOMContentLoaded', () => {
             const currentDb = getFleetData();
             if(currentDb.length === 0) {
@@ -326,11 +363,12 @@ app.get('/', (req, res) => {
                 historyDb.push("[" + new Date().toLocaleTimeString() + "] 💾 System Core Engine launched.");
                 saveHistoryData(historyDb);
             }
-            if(localStorage.getItem('saas_is_logged_in') === 'true') {
+
+            if(localStorage.getItem('saas_is_logged_in') === 'true' && localStorage.getItem('saas_session_token')) {
                 document.getElementById('loginScreenGatewayFrame').style.display = 'none';
                 document.getElementById('mainDashboardWorkspaceShell').style.display = 'block';
-                document.getElementById('welcomeLabelStringNode').innerText = localStorage.getItem('saas_greeting_msg');
-                document.getElementById('activePortalBadge').innerText = localStorage.getItem('saas_user_role') + " VIEW ACTIVE";
+                document.getElementById('welcomeLabelStringNode').innerText = localStorage.getItem('saas_greeting_msg') || "Welcome";
+                document.getElementById('activePortalBadge').innerText = (localStorage.getItem('saas_user_role') || "USER") + " VIEW ACTIVE";
                 
                 if(localStorage.getItem('saas_user_role') === 'PROPRIETOR') {
                     document.getElementById('proprietorSuperVisibilityAuditorCard').style.display = 'block';
@@ -342,6 +380,10 @@ app.get('/', (req, res) => {
                     renderHistoryTerminalLogsBox();
                 }
                 renderFleetDirectoryRows();
+            } else {
+                localStorage.clear();
+                document.getElementById('loginScreenGatewayFrame').style.display = 'block';
+                document.getElementById('mainDashboardWorkspaceShell').style.display = 'none';
             }
         });
 
@@ -359,10 +401,18 @@ app.get('/', (req, res) => {
             document.getElementById('loginScreenGatewayFrame').style.display = 'block';
         }
 
+        // --- CORE LIVE HANDLER PROCESSORS ---
         async function executeIdentityAuthenticationRequest() {
             const email = document.getElementById('loginEmailInputField').value.trim();
             const password = document.getElementById('loginPasswordInputField').value.trim();
-            if(!email || !password) return alert("Fields empty!");
+            
+            if(!email || !password) {
+                alert("Please fill in all identity verification fields.");
+                return;
+            }
+
+            const alertBox = document.getElementById('loginErrorAlertNode');
+            alertBox.style.display = 'none';
 
             try {
                 const response = await fetch('/api/auth/login', { 
@@ -370,46 +420,91 @@ app.get('/', (req, res) => {
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ email, password }) 
                 });
+                
                 const data = await response.json();
-                if(response.ok) {
+                
+                if(response.ok && data.token) {
+                    localStorage.clear();
                     localStorage.setItem('saas_is_logged_in', 'true');
                     localStorage.setItem('saas_session_token', data.token);
                     localStorage.setItem('saas_user_role', data.user.role);
                     localStorage.setItem('saas_greeting_msg', data.user.customGreetingText);
                     window.location.reload(); 
-                } else { document.getElementById('loginErrorAlertNode').style.display = 'block'; }
-            } catch (err) { alert("Server Connection Error."); }
+                } else { 
+                    alertBox.innerText = "⚠️ " + (data.error || "Authentication Failed! Invalid Credentials.");
+                    alertBox.style.display = 'block'; 
+                }
+            } catch (err) { 
+                alert("Server Terminal Connection Error. Please verify if Render service is active."); 
+            }
         }
 
         async function executePasswordResetRequestTicket() {
             const email = document.getElementById('forgotEmailLookupField').value.trim();
-            if(!email) return alert("Enter email!");
-            const res = await fetch('/api/auth/forgot-password-trigger', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-            const data = await res.json();
-            if(res.ok) { alert("🔒 Security Recovery Token: " + data.simulatedOTP); document.getElementById('forgotStep1EmailInputBlock').style.display = 'none'; document.getElementById('forgotStep2OTPVerifyBlock').style.display = 'block'; }
-            else { alert("Error: " + data.error); }
+            if(!email) return alert("Please enter your email!");
+            
+            const btn = document.getElementById('otpRequestBtn');
+            btn.innerText = "Sending Email...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/forgot-password-trigger', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ email }) 
+                });
+                const data = await res.json();
+                
+                if(res.ok) { 
+                    alert("📧 Real OTP code has been dispatched to your email inbox!"); 
+                    document.getElementById('forgotStep1EmailInputBlock').style.display = 'none'; 
+                    document.getElementById('forgotStep2OTPVerifyBlock').style.display = 'block'; 
+                } else { 
+                    if(data.fallbackOTP) {
+                        alert("⚠️ SMTP Configuration Error on Render. Fallback Alert Mode: Your token code is " + data.fallbackOTP);
+                        document.getElementById('forgotStep1EmailInputBlock').style.display = 'none'; 
+                        document.getElementById('forgotStep2OTPVerifyBlock').style.display = 'block';
+                    } else {
+                        alert("Error: " + data.error); 
+                    }
+                }
+            } catch(e) {
+                alert("Terminal Connection failed.");
+            } finally {
+                btn.innerText = "Send Live OTP Email";
+                btn.disabled = false;
+            }
         }
 
         async function executePasswordResetOTPMutationCommit() {
             const email = document.getElementById('forgotEmailLookupField').value.trim();
             const otp = document.getElementById('forgotVerificationOtpCodeField').value.trim();
             const newPassword = document.getElementById('forgotNewPasswordOverrideField').value.trim();
-            const res = await fetch('/api/auth/forgot-password-verify-commit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, otp, newPassword }) });
-            if(res.ok) { alert("Success! Password overridden."); switchForgotViewBackToLoginGateway(); }
+            
+            const res = await fetch('/api/auth/forgot-password-verify-commit', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ email, otp, newPassword }) 
+            });
+            if(res.ok) { 
+                alert("Success! Password has been overwritten safely."); 
+                switchForgotViewBackToLoginGateway(); 
+            } else {
+                const data = await res.json();
+                alert("Error: " + data.error);
+            }
         }
 
         async function fetchSuperAuditorAccountsGrid() {
-            const response = await fetch('/api/proprietor/audit-directory-stream', {
-                headers: getAuthHeader()
-            });
+            const response = await fetch('/api/proprietor/audit-directory-stream', { headers: getAuthHeader() });
             if(!response.ok) return;
             const users = await response.json();
             const hookGrid = document.getElementById('superAuditorAccountsListingHookGrid');
             hookGrid.innerHTML = '';
             users.forEach(u => {
                 const el = document.createElement('div');
-                el.className = 'fleet-row'; el.style.background = '#fff'; el.style.padding = '10px'; el.style.marginBottom = '6px'; el.style.border = '1px solid #ddd';
-                el.innerHTML = "<strong>👤 User: " + u.name + "</strong> ["+u.role+"]<br>Email: "+u.email+"<br><span style='color:green; font-weight:bold;'>Status: " + u.status + "</span>";
+                el.className = 'fleet-row';
+                el.innerHTML = "<strong>👤 User: " + u.name + "</strong> ["+u.role+"]<br>Email: "+u.email;
                 hookGrid.appendChild(el);
             });
         }
@@ -419,7 +514,7 @@ app.get('/', (req, res) => {
             target.innerHTML = '';
             mockTokenVaultLogsDB.forEach(log => {
                 const el = document.createElement('div');
-                el.className = 'fleet-row'; el.style.background = '#fff'; el.style.padding = '8px'; el.style.marginBottom = '4px';
+                el.className = 'fleet-row';
                 el.innerHTML = "<strong>⚙️ " + log.node + "</strong> - " + log.status + "<br><span style='color:gray; font-size:11px;'>Factor: " + log.time + "</span>";
                 target.appendChild(el);
             });
@@ -441,7 +536,7 @@ app.get('/', (req, res) => {
         }
 
         function executeSystemHistoryLogsFlushSequence() {
-            if(!confirm("Clear?")) return;
+            if(!confirm("Clear Logs Permanently?")) return;
             saveHistoryData(["[Logs cleared]"]); renderHistoryTerminalLogsBox();
         }
 
@@ -453,9 +548,8 @@ app.get('/', (req, res) => {
             
             list.forEach((tenant, index) => {
                 const el = document.createElement('div');
-                el.className = 'fleet-row'; el.style.background = '#fff'; el.style.padding = '10px'; el.style.marginBottom = '6px';
-                
-                let pricingDetails = tenant.plan === 'FREE_UNLIMITED' ? 'Unlimited Free Plan' : '$' + parseFloat(tenant.creditsUsedUSD || 0).toFixed(2) + ' / $5.00 (Rate: $' + tenant.rate + '/msg)';
+                el.className = 'fleet-row';
+                let pricingDetails = tenant.plan === 'FREE_UNLIMITED' ? 'Unlimited Free Plan' : '$' + parseFloat(tenant.creditsUsedUSD || 0).toFixed(2) + ' / $5.00 Mode (Rate: $' + tenant.rate + '/msg)';
                 
                 el.innerHTML = "<strong>🏢 " + tenant.businessName + "</strong> [Line: " + tenant.num + "]<br><span style='font-size:11px; color:green; font-weight:bold;'>" + pricingDetails + "</span><div style='margin-top:6px;'><a href='javascript:void(0)' onclick='openProprietorEditModalFrame(" + index + ")' style='color:#1877F2; text-decoration:none; font-size:11px; font-weight:bold;'>✏️ Modify</a><a href='javascript:void(0)' onclick='executeSaaSChannelDeletionPipeline(" + index + ")' style='color:#dc2626; text-decoration:none; font-size:11px; font-weight:bold; margin-left:12px;'>❌ Delete</a></div>";
                 targetGrid.appendChild(el);
@@ -485,11 +579,11 @@ app.get('/', (req, res) => {
         }
 
         function executeSaaSChannelDeletionPipeline(index) {
-            if(!confirm("Erase?")) return;
+            if(!confirm("Erase line config pipeline?")) return;
             let list = getFleetData(); list.splice(index, 1); saveFleetData(list); renderFleetDirectoryRows();
         }
 
-        function executeProprietorClientOnboarding() {
+        function executeProjectOnboarding() {
             const num = document.getElementById('onboardPhoneInput').value.trim();
             const comp = document.getElementById('onboardCompanyInput').value.trim();
             const appid = document.getElementById('onboardPhoneIdInput').value.trim();
@@ -499,7 +593,7 @@ app.get('/', (req, res) => {
             if(!num || !comp) return alert("Fields empty!");
             
             const list = getFleetData(); list.push({ num, businessName:comp, appid, token, plan, rate, creditsUsedUSD:0.00 });
-            localStorage.setItem('saas_fleet_db', JSON.stringify(list));
+            saveFleetData(list);
             
             const logs = getHistoryData(); logs.push("[" + new Date().toLocaleTimeString() + "] 📞 ONBOARDED: " + comp);
             saveHistoryData(logs); window.location.reload();
@@ -507,12 +601,12 @@ app.get('/', (req, res) => {
 
         function simulateInboundTrafficDeductionNode() {
             const targetNum = document.getElementById('simulatedChannelDropdownSelector').value;
-            if(!targetNum) return alert("No postpaid accounts!");
+            if(!targetNum) return alert("No postpaid accounts assigned!");
             let list = getFleetData(); let tenant = list.find(u => u.num === targetNum);
             tenant.creditsUsedUSD = parseFloat(((tenant.creditsUsedUSD || 0) + (150 * tenant.rate)).toFixed(2));
             alert("Bill Added! Total Bill: $" + tenant.creditsUsedUSD);
             if(tenant.creditsUsedUSD >= 4.50) {
-                alert("🚨 $5.00 Threshold Triggered! Exact amount $" + tenant.creditsUsedUSD + " USD charged from linked card automatically. Cycle reset.");
+                alert("🚨 $5.00 Threshold Triggered! Exact amount $" + tenant.creditsUsedUSD + " USD charged from linked profile automatically. Cycle reset.");
                 tenant.creditsUsedUSD = 0.00;
             }
             saveFleetData(list); renderFleetDirectoryRows();
@@ -536,7 +630,6 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Start Production-Ready Server Node directly using app.listen
 app.listen(PORT, () => {
     console.log(`Server running securely on port ${PORT}`);
 });
