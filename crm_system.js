@@ -1,5 +1,5 @@
 // crm_system.js
-// Final Unified Production Release: Secure Multi-Tenant Framework with Absolute Buttons Response Validation
+// Final Clean Release: Secure Multi-Tenant Framework with Absolute Buttons Response Validation
 const express = require('express');
 const http = require('http');
 const crypto = require('crypto');
@@ -59,7 +59,6 @@ app.get('/', (req, res) => {
     </head>
     <body style="background: #F0F2F5;">
 
-    <!-- FIXED SCREEN GATEWAY: Wrapped cleanly with static clickable parameters blocks -->
     <div id="loginScreenGatewayFrame" style="display: block;">
         <div class="login-card">
             <h2 style="color: #1877F2; margin-top: 0; margin-bottom: 5px;">Log In to Meta SaaS</h2>
@@ -75,13 +74,11 @@ app.get('/', (req, res) => {
             </div>
             Authenticate Account</button>
             <div style="margin-top: 15px;">
-                <!-- FIXED ACTION: Standalone onclick bindings function loops -->
                 <button type="button" onclick="switchLoginViewToForgotPasswordPanel()" style="background:none; border:none; color:#1877F2; font-weight:bold; font-size:13px; cursor:pointer; text-decoration:underline; padding:0;">Forgot Password?</button>
             </div>
         </div>
     </div>
 
-    <!-- FORGOT PASSWORD MODULE STRINGS CONTROLLER PANEL -->
     <div id="forgotPasswordWrapperOverlayFrame" style="display: none;">
         <div class="login-card">
             <h3 style="color: #1877F2; margin-top: 0;">🛡️ Secure Password Recovery Center</h3>
@@ -106,7 +103,6 @@ app.get('/', (req, res) => {
         </div>
     </div>
 
-    <!-- MAIN ACTIVE DASHBOARD SPACE SHELL -->
     <div id="mainDashboardWorkspaceShell" style="display: none;">
         <div class="navbar">
             <div style="font-weight: bold; font-size: 18px;" id="welcomeLabelStringNode">Welcome...</div>
@@ -174,7 +170,6 @@ app.get('/', (req, res) => {
 
     <script>
         function getFleetData() { return JSON.parse(localStorage.getItem('saas_fleet_db') || '[]'); }
-        // Force complete isolation logic on variables mapping references to resolve clicks blocks
         function getHistoryData() { return JSON.parse(localStorage.getItem('saas_history_db') || '[]'); }
         function saveHistoryData(data) { localStorage.setItem('saas_history_db', JSON.stringify(data)); }
 
@@ -187,8 +182,8 @@ app.get('/', (req, res) => {
         window.addEventListener('DOMContentLoaded', () => {
             const historyDb = getHistoryData();
             if(historyDb.length === 0) {
-                historyDb.push(\`[\${new Date().toLocaleTimeString()}] 💾 System Core Engine launched. Live server mounted seamlessly.\`);
-                historyDb.push(\`[\${new Date().toLocaleTimeString()}] 🛡️ Encryption tokens verified. Core databases schemas frozen.\`);
+                historyDb.push("[" + new Date().toLocaleTimeString() + "] 💾 System Core Engine launched. Live server mounted seamlessly.");
+                historyDb.push("[" + new Date().toLocaleTimeString() + "] 🛡️ Encryption tokens verified. Core databases schemas frozen.");
                 saveHistoryData(historyDb);
             }
 
@@ -211,7 +206,6 @@ app.get('/', (req, res) => {
             }
         });
 
-        // FIXED INTERFACES NAVIGATION SWITCHES: Guarantees prompt layout mutations cleanly
         function switchLoginViewToForgotPasswordPanel() {
             document.getElementById('loginScreenGatewayFrame').style.display = 'none';
             document.getElementById('forgotPasswordWrapperOverlayFrame').style.display = 'block';
@@ -324,7 +318,7 @@ app.get('/', (req, res) => {
         function renderHistoryTerminalLogsBox() {
             const terminal = document.getElementById('historyTerminalLogTerminalBox');
             const logs = getHistoryData();
-            terminal.innerHTML = logs.map(line => \`<div>\${line}</div>\`).join('');
+            terminal.innerHTML = logs.map(line => "<div>" + line + "</div>").join('');
             terminal.scrollTop = terminal.scrollHeight;
         }
 
@@ -334,7 +328,7 @@ app.get('/', (req, res) => {
             if(!value) return alert("Logs text entry string empty!");
 
             const logs = getHistoryData();
-            logs.push(\`[\${new Date().toLocaleTimeString()}] ✍️ MANUALLY INJECTED: \${value}\`);
+            logs.push("[" + new Date().toLocaleTimeString() + "] ✍️ MANUALLY INJECTED: " + value);
             saveHistoryData(logs);
             
             renderHistoryTerminalLogsBox();
@@ -344,7 +338,7 @@ app.get('/', (req, res) => {
 
         function executeSystemHistoryLogsFlushSequence() {
             if(!confirm("Are you sure?")) return;
-            const emptyLogs = [\`[\${new Date().toLocaleTimeString()}] 🗑️ History records manually flushed out.\`Input];
+            const emptyLogs = ["[" + new Date().toLocaleTimeString() + "] 🗑️ History records manually flushed out."];
             saveHistoryData(emptyLogs);
             renderHistoryTerminalLogsBox();
         }
@@ -370,7 +364,7 @@ app.get('/', (req, res) => {
             localStorage.setItem('saas_fleet_db', JSON.stringify(list));
             
             const logs = getHistoryData();
-            logs.push(\`[\${new Date().toLocaleTimeString()}] 📞 NEW TENANT ONBOARDED: \${comp}\`);
+            logs.push("[" + new Date().toLocaleTimeString() + "] 📞 NEW TENANT ONBOARDED: " + comp);
             saveHistoryData(logs);
             window.location.reload();
         }
